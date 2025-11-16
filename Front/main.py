@@ -1,5 +1,6 @@
 from mainMenu import *
 
 if __name__ == "__main__":
-    bomb = MainMenu(True)
-    bomb.start()
+    code = MainMenu(True)
+    code.start()
+
