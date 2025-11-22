@@ -1,0 +1,143 @@
+=== LOG DE EJECUCIÓN DEL CPU ===
+23 instrucciones cargadas desde C:\Users\feliv\OneDrive\Documentos\GitHub\dserrano_compu_archi_found_2G1_2025\Simulador\programa.txt
+
+=== Ciclo 0 ===
+Instrucción: # Programa de prueba extendido - Múltiples guardados y cargas
+Señales: {'RegWrite': 0, 'ALUSrc': 0, 'MemRead': 0, 'MemWrite': 0, 'MemToReg': 0, 'Branch': 0, 'ALUOp': 'add'}
+PC → 1
+
+=== Ciclo 1 ===
+Instrucción: addi x1, x0, 5        # x1 = 5
+Señales: {'RegWrite': 1, 'ALUSrc': 1, 'MemRead': 0, 'MemWrite': 0, 'MemToReg': 0, 'Branch': 0, 'ALUOp': 'add'}
+ADDInmediato: x1 = 0 + 5 = 5
+PC → 2
+
+=== Ciclo 2 ===
+Instrucción: addi x2, x0, 10       # x2 = 10
+Señales: {'RegWrite': 1, 'ALUSrc': 1, 'MemRead': 0, 'MemWrite': 0, 'MemToReg': 0, 'Branch': 0, 'ALUOp': 'add'}
+ADDInmediato: x2 = 0 + 10 = 10
+PC → 3
+
+=== Ciclo 3 ===
+Instrucción: add x3, x1, x2        # x3 = 15
+Señales: {'RegWrite': 1, 'ALUSrc': 0, 'MemRead': 0, 'MemWrite': 0, 'MemToReg': 0, 'Branch': 0, 'ALUOp': 'add'}
+ALU: 5 add 10 = 15 → x3
+PC → 4
+
+=== Ciclo 4 ===
+Instrucción: sw x3, 0(x0)          # Mem[0] = 15
+Señales: {'RegWrite': 0, 'ALUSrc': 1, 'MemRead': 0, 'MemWrite': 1, 'MemToReg': 0, 'Branch': 0, 'ALUOp': 'add'}
+Store: Mem[0] = x3 valor guardado->(15)
+PC → 5
+
+=== Ciclo 5 ===
+Instrucción: addi x4, x3, 2        # x4 = 17
+Señales: {'RegWrite': 1, 'ALUSrc': 1, 'MemRead': 0, 'MemWrite': 0, 'MemToReg': 0, 'Branch': 0, 'ALUOp': 'add'}
+ADDInmediato: x4 = 15 + 2 = 17
+PC → 6
+
+=== Ciclo 6 ===
+Instrucción: sw x4, 4(x0)          # Mem[4] = 17
+Señales: {'RegWrite': 0, 'ALUSrc': 1, 'MemRead': 0, 'MemWrite': 1, 'MemToReg': 0, 'Branch': 0, 'ALUOp': 'add'}
+Store: Mem[4] = x4 valor guardado->(17)
+PC → 7
+
+=== Ciclo 7 ===
+Instrucción: sub x5, x4, x1        # x5 = 12
+Señales: {'RegWrite': 1, 'ALUSrc': 0, 'MemRead': 0, 'MemWrite': 0, 'MemToReg': 0, 'Branch': 0, 'ALUOp': 'sub'}
+ALU: 17 sub 5 = 12 → x5
+PC → 8
+
+=== Ciclo 8 ===
+Instrucción: sw x5, 8(x0)          # Mem[8] = 12
+Señales: {'RegWrite': 0, 'ALUSrc': 1, 'MemRead': 0, 'MemWrite': 1, 'MemToReg': 0, 'Branch': 0, 'ALUOp': 'add'}
+Store: Mem[8] = x5 valor guardado->(12)
+PC → 9
+
+=== Ciclo 9 ===
+Instrucción: add x6, x5, x5        # x6 = 24
+Señales: {'RegWrite': 1, 'ALUSrc': 0, 'MemRead': 0, 'MemWrite': 0, 'MemToReg': 0, 'Branch': 0, 'ALUOp': 'add'}
+ALU: 12 add 12 = 24 → x6
+PC → 10
+
+=== Ciclo 10 ===
+Instrucción: sw x6, 12(x0)         # Mem[12] = 24
+Señales: {'RegWrite': 0, 'ALUSrc': 1, 'MemRead': 0, 'MemWrite': 1, 'MemToReg': 0, 'Branch': 0, 'ALUOp': 'add'}
+Store: Mem[12] = x6 valor guardado->(24)
+PC → 11
+
+=== Ciclo 11 ===
+Instrucción: lw x7, 0(x0)          # x7 = 15
+Señales: {'RegWrite': 1, 'ALUSrc': 1, 'MemRead': 1, 'MemWrite': 0, 'MemToReg': 1, 'Branch': 0, 'ALUOp': 'add'}
+Load: x7 = Mem[0] = 15
+PC → 12
+
+=== Ciclo 12 ===
+Instrucción: lw x8, 4(x0)          # x8 = 17
+Señales: {'RegWrite': 1, 'ALUSrc': 1, 'MemRead': 1, 'MemWrite': 0, 'MemToReg': 1, 'Branch': 0, 'ALUOp': 'add'}
+Load: x8 = Mem[4] = 17
+PC → 13
+
+=== Ciclo 13 ===
+Instrucción: lw x9, 8(x0)          # x9 = 12
+Señales: {'RegWrite': 1, 'ALUSrc': 1, 'MemRead': 1, 'MemWrite': 0, 'MemToReg': 1, 'Branch': 0, 'ALUOp': 'add'}
+Load: x9 = Mem[8] = 12
+PC → 14
+
+=== Ciclo 14 ===
+Instrucción: lw x10, 12(x0)        # x10 = 24
+Señales: {'RegWrite': 1, 'ALUSrc': 1, 'MemRead': 1, 'MemWrite': 0, 'MemToReg': 1, 'Branch': 0, 'ALUOp': 'add'}
+Load: x10 = Mem[12] = 24
+PC → 15
+
+=== Ciclo 15 ===
+Instrucción: add x11, x7, x8       # x11 = 32
+Señales: {'RegWrite': 1, 'ALUSrc': 0, 'MemRead': 0, 'MemWrite': 0, 'MemToReg': 0, 'Branch': 0, 'ALUOp': 'add'}
+ALU: 15 add 17 = 32 → x11
+PC → 16
+
+=== Ciclo 16 ===
+Instrucción: add x12, x9, x10      # x12 = 36
+Señales: {'RegWrite': 1, 'ALUSrc': 0, 'MemRead': 0, 'MemWrite': 0, 'MemToReg': 0, 'Branch': 0, 'ALUOp': 'add'}
+ALU: 12 add 24 = 36 → x12
+PC → 17
+
+=== Ciclo 17 ===
+Instrucción: sw x11, 16(x0)        # Mem[16] = 32
+Señales: {'RegWrite': 0, 'ALUSrc': 1, 'MemRead': 0, 'MemWrite': 1, 'MemToReg': 0, 'Branch': 0, 'ALUOp': 'add'}
+Store: Mem[16] = x11 valor guardado->(32)
+PC → 18
+
+=== Ciclo 18 ===
+Instrucción: sw x12, 20(x0)        # Mem[20] = 36
+Señales: {'RegWrite': 0, 'ALUSrc': 1, 'MemRead': 0, 'MemWrite': 1, 'MemToReg': 0, 'Branch': 0, 'ALUOp': 'add'}
+Store: Mem[20] = x12 valor guardado->(36)
+PC → 19
+
+=== Ciclo 19 ===
+Instrucción: lw x13, 16(x0)        # x13 = 32
+Señales: {'RegWrite': 1, 'ALUSrc': 1, 'MemRead': 1, 'MemWrite': 0, 'MemToReg': 1, 'Branch': 0, 'ALUOp': 'add'}
+Load: x13 = Mem[16] = 32
+PC → 20
+
+=== Ciclo 20 ===
+Instrucción: lw x14, 20(x0)        # x14 = 36
+Señales: {'RegWrite': 1, 'ALUSrc': 1, 'MemRead': 1, 'MemWrite': 0, 'MemToReg': 1, 'Branch': 0, 'ALUOp': 'add'}
+Load: x14 = Mem[20] = 36
+PC → 21
+
+=== Ciclo 21 ===
+Instrucción: add x15, x13, x14     # x15 = 68
+Señales: {'RegWrite': 1, 'ALUSrc': 0, 'MemRead': 0, 'MemWrite': 0, 'MemToReg': 0, 'Branch': 0, 'ALUOp': 'add'}
+ALU: 32 add 36 = 68 → x15
+PC → 22
+
+=== Ciclo 22 ===
+Instrucción: sw x15, 24(x0)        # Mem[24] = 68
+Señales: {'RegWrite': 0, 'ALUSrc': 1, 'MemRead': 0, 'MemWrite': 1, 'MemToReg': 0, 'Branch': 0, 'ALUOp': 'add'}
+Store: Mem[24] = x15 valor guardado->(68)
+PC → 23
+Fin del programa
+
+--- EJECUCIÓN FINALIZADA ---
+Estado de memoria escrito en memoria_salida.txt
