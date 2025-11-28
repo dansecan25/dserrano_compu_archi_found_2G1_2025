@@ -246,5 +246,5 @@ riscv_code = [
 
 
 
-claseProc = ProcessorSimulator(riscv_code);
-claseProc.run();
+claseProc = ProcessorSimulator(riscv_code)
+claseProc.run()

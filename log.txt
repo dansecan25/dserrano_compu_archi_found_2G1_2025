@@ -1,1 +1,15 @@
 === LOG DE EJECUCIÓN DEL CPU ===
+12 instrucciones cargadas
+Labels detectados: {'count': 0, 'limit': 1, 'msg': 2, '_start': 1, 'loop': 5, 'end': 9, 'done': 11}
+
+=== Ciclo 0 ===
+Instrucción: .globl _start
+Directiva ignorada: .globl
+
+=== Ciclo 1 ===
+Instrucción: la x5, count         # x5 = dirección del contador
+Señales: {'RegWrite': 1, 'ALUSrc': 0, 'MemRead': 0, 'MemWrite': 0, 'MemToReg': 0, 'Branch': 0, 'ALUOp': 'add'}
+ERROR: parámetros incorrectos en la
+
+--- EJECUCIÓN FINALIZADA ---
+Estado de memoria escrito en memoria_salida.txt
