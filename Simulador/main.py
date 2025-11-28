@@ -1,4 +1,5 @@
 from cpu import CPU
+from cpuPipelineSinHazards import CPUpipelineNoHazard
 
 
 riscv_code = [
@@ -11,7 +12,7 @@ riscv_code = [
     "",
     "        .data",
     "count:  .word 0             # Contador de iteraciones",
-    "limit:  .word 5000          # Límite (miles de saltos)",
+    "limit:  .word 500          # Límite (miles de saltos)",
     "msg:    .string \"Fin del programa\\n\"",
     "",
     "        .text",
@@ -24,7 +25,7 @@ riscv_code = [
     "        la x5, count         # x5 = dirección del contador",
     "        la x6, limit         # x6 = dirección del límite",
     "        lw x7, 0(x5)         # x7 = count = 0",
-    "        lw x8, 0(x6)         # x8 = limit = 5000",
+    "        lw x8, 0(x6)         # x8 = limit = 500",
     "",
     "loop:",
     "        #-------------------------------------------------",
@@ -51,9 +52,12 @@ riscv_code = [
 
 
 cpu = CPU()
+cpuPipeline=CPUpipelineNoHazard()
+cpuPipeline.cargarCodigo(riscv_code)
+cpuPipeline.ejecutar()
 
-cpu.ejecutar(riscv_code)
-cpu.ejecutar_todo()
+# cpu.ejecutar(riscv_code)
+# cpu.ejecutar_todo()
 
 
 

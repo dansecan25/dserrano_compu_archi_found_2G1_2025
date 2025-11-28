@@ -43,9 +43,6 @@ class CPU:
             if line.startswith("#"):
                 continue
 
-            # ============================
-            # DETECTAR SECCIONES
-            # ============================
             if line == ".data":
                 in_data_section = True
                 in_text_section = False
@@ -55,10 +52,6 @@ class CPU:
                 in_text_section = True
                 in_data_section = False
                 continue
-
-            # ============================
-            # PROCESAR SECCIÓN .data
-            # ============================
 
             if in_data_section:
                 if ":" in line:
@@ -111,63 +104,57 @@ class CPU:
         self.log(f"Estado de memoria escrito en {ruta}")
 
     def ejecutar_ciclo(self):
-        instr = self.mem_inst.leer(self.PC)
-        print("Instruccion leida es: ",instr)
-        if not instr:
+        instr_original = self.mem_inst.leer(self.PC)
+        if not instr_original:
             self.log("Fin del programa")
             return False
-        
-        
+
+        # LIMPIA COMENTARIOS ANTES DE TODO
+        instr = instr_original.split("#")[0].strip()
+
+        if instr == "":
+            self.PC += 1
+            return True
 
         self.log(f"\n=== Ciclo {self.PC} ===")
         self.log(f"Instrucción: {instr}")
 
         partes = instr.replace(",", "").split()
         opcode = partes[0]
-        print("Current opcode: ", opcode)
 
-        # ============================
-        # VALIDAR SI LA INSTRUCCIÓN EXISTE
-        # ============================
         instrucciones_validas = ["add", "sub", "addi", "sw", "lw", "la", "jal", "nop", "blt", "beq"]
 
-
-        # Ignorar directivas de ensamblador
+        # Directiva
         if opcode.startswith("."):
             self.log(f"Directiva ignorada: {opcode}")
             self.PC += 1
             return True
 
-
         if opcode not in instrucciones_validas:
             self.log(f"ERROR: La instrucción '{opcode}' no está implementada.")
             return False
-        
-        # Ignorar directivas de ensamblador
 
         señales = self.uc.decodificar(opcode)
         self.log(f"Señales: {señales}")
-        if opcode == "la":
-            if len(partes) != 3:
-                self.log("ERROR: parámetros incorrectos en la")
-                return False
-
-            rd = int(partes[1][1:])
-            label = partes[2]
-
-            if label not in self.labels:
-                self.log(f"ERROR: label '{label}' no existe")
-                return False
-
-            direccion = self.labels[label]
-            self.regs.escribir(rd, direccion)
-            self.log(f"la: x{rd} = dirección({label}) = {direccion}")
-            
-            self.PC += 1
-            return True
-
 
         try:
+            if opcode == "la":
+                if len(partes) != 3:
+                    raise ValueError("Cantidad incorrecta de parámetros")
+
+                rd = int(partes[1][1:])
+                label = partes[2]
+
+                if label not in self.labels:
+                    raise ValueError(f"Label '{label}' no encontrado")
+
+                direccion = self.labels[label]
+                self.regs.escribir(rd, direccion)
+                self.log(f"la: x{rd} = dirección({label}) = {direccion}")
+
+                self.PC += 1
+                return True
+            
             if opcode in ["add", "sub"]:
                 if len(partes) != 4:
                     raise ValueError("Cantidad incorrecta de parámetros")
