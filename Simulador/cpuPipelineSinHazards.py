@@ -38,21 +38,30 @@ class CPUpipelineNoHazard:
             partes = linea.replace("\t", " ").split(" ")
 
             # Filtrar vacíos
-            lineaCodigo = [p for p in partes if p != ""]
+            lineaCodigo:list[str] = [p for p in partes if p != ""]
 
             # Si está vacía → saltar
             if not lineaCodigo:
                 continue
 
             print("Linea de codigo es:", lineaCodigo)
-            #mueve la instruccion en cada iteracion por las 5 etapas
-            self.etapa_store.cargarInstruccion(self.etapa_execute.getInstruccion(),[])
-            self.etapa_execute.cargarInstruccion(self.etapa_registerFile.getInstruccion(),[])
-            self.etapa_registerFile.cargarInstruccion(self.etapa_decode.getInstruccion(),[])
-            self.etapa_decode.cargarInstruccion(self.etapa_fetch.getInstruccion(),[])
-            self.etapa_fetch.cargarInstruccion(lineaCodigo[0],[])
-            print("------------------------------------------------------------------------")
-            
+            #identificar si son tags
+            if lineaCodigo[0].startswith(".") or lineaCodigo[0].endswith(":"):
+                continue
+
+            #identificar si la instruccion es valida
+            instrucciones_validas = ["add", "sub", "addi", "sw", "lw", "la", "jal", "nop", "blt", "beq"]
+            if(lineaCodigo[0] in instrucciones_validas):
+                #mueve la instruccion en cada iteracion por las 5 etapas
+                self.etapa_store.cargarInstruccion(self.etapa_execute.getInstruccion(),[])
+                self.etapa_execute.cargarInstruccion(self.etapa_registerFile.getInstruccion(),[])
+                self.etapa_registerFile.cargarInstruccion(self.etapa_decode.getInstruccion(),[])
+                self.etapa_decode.cargarInstruccion(self.etapa_fetch.getInstruccion(),[])
+                self.etapa_fetch.cargarInstruccion(lineaCodigo[0],[])
+                print("------------------------------------------------------------------------")
+            else:
+                print("Instruccion no valida")
+                return
             
             #siguiente ciclo, si hay instrucción en fetch, decode, register file, execute o store, moverla a la siguiente etapa
 
