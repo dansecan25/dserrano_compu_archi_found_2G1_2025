@@ -13,8 +13,8 @@ class CPUpipelineNoHazard:
         self.regs = [0] * 32
         self.etapa_fetch = Fetch()
         self.etapa_decode = Decode()
-        self.etapa_registerFile = RegisterFile()
-        self.etapa_execute = Execute()
+        self.etapa_registerFile = RegisterFile(regs=self.regs)
+        self.etapa_execute = Execute(mem_data=self.mem_data)
         self.etapa_store = EtapaStore()
         self.PC = 0
         self.labels = {}
@@ -36,12 +36,22 @@ class CPUpipelineNoHazard:
 
     def cargarCodigo(self, codigo):
         """Carga el código (lista de instrucciones) en la cola."""
-        # Filtrar comentarios y líneas vacías
+        # Filtrar comentarios y líneas vacías, detectar labels
         self.codigo = []
+        self.labels = {}
         for linea in codigo:
             linea = linea.split("#")[0].strip()
             if linea:
-                self.codigo.append(linea)
+                # Detectar labels (formato: "label:")
+                if ':' in linea and not '(' in linea:  # Evitar confusión con offset(reg)
+                    label_name = linea.split(':')[0].strip()
+                    self.labels[label_name] = len(self.codigo)
+                    # Si hay instrucción después del label en la misma línea
+                    resto = linea.split(':', 1)[1].strip()
+                    if resto:
+                        self.codigo.append(resto)
+                else:
+                    self.codigo.append(linea)
         self.instrucciones_cola = self.codigo.copy()
         # Escribir también en la memoria de instrucciones para compatibilidad
         # con el comportamiento anterior de `CPU.cargar_programa_desde_archivo`.
@@ -62,7 +72,7 @@ class CPUpipelineNoHazard:
 
     def mostrar_estado_pipeline(self):
         """Imprime el estado actual de todas las etapas."""
-        estado = f"\n[CICLO {self.ciclo_actual:3d}] Estado del Pipeline:\n"
+        estado = f"\n[CICLO {self.ciclo_actual:3d}] [PC={self.indice_instruccion:3d}] Estado del Pipeline:\n"
         estado += f"  Fetch:        {self.etapa_fetch.get_estado()}\n"
         estado += f"  Decode:       {self.etapa_decode.get_estado()}\n"
         estado += f"  RegFile:      {self.etapa_registerFile.get_estado()}\n"
@@ -117,6 +127,35 @@ class CPUpipelineNoHazard:
                         if 0 <= rd < len(self.regs):
                             self.regs[rd] = val
                             self.log(f"[STORE] Load: x{rd} <- Mem[{addr}] = {val}")
+                    elif accion == 'branch_result':
+                        # Branch evaluation result
+                        branch_taken, label_or_offset = params[1], params[2]
+                        if branch_taken:
+                            # Resolver label o usar offset directo
+                            if label_or_offset in self.labels:
+                                nuevo_pc = self.labels[label_or_offset]
+                            else:
+                                # Asumir offset relativo
+                                try:
+                                    nuevo_pc = self.indice_instruccion + int(label_or_offset)
+                                except:
+                                    nuevo_pc = self.indice_instruccion
+                            
+                            self.log(f"[STORE] Branch TOMADO: PC = {self.indice_instruccion} -> {nuevo_pc}")
+                            self.indice_instruccion = nuevo_pc
+                            
+                            # Flush pipeline (limpiar Fetch, Decode, RegisterFile, Execute)
+                            self.etapa_fetch.instruccionEjecutando = ""
+                            self.etapa_fetch.ocupada = False
+                            self.etapa_decode.instruccionEjecutando = ""
+                            self.etapa_decode.ocupada = False
+                            self.etapa_registerFile.instruccionEjecutando = ""
+                            self.etapa_registerFile.ocupada = False
+                            self.etapa_execute.instruccionEjecutando = ""
+                            self.etapa_execute.ocupada = False
+                            self.log(f"[STORE] Pipeline flushed (Fetch/Decode/RegFile/Execute)")
+                        else:
+                            self.log(f"[STORE] Branch NO tomado")
             except Exception:
                 pass
             # Limpiar la etapa Store después de completar
@@ -126,44 +165,9 @@ class CPUpipelineNoHazard:
         # Execute → Store (si Execute completa y Store está libre)
         if self.etapa_execute.getInstruccion() != "" and self.etapa_store.esta_libre():
             instr = self.etapa_execute.getInstruccion()
-            # Preparar params según el tipo de instrucción
-            params = []
-            try:
-                partes = instr.replace(',', '').split()
-                opcode = partes[0] if partes else ''
-                if opcode in ['add', 'sub', 'mul', 'div']:
-                    rd = int(partes[1][1:]); rs1 = int(partes[2][1:]); rs2 = int(partes[3][1:])
-                    a = self.regs[rs1]; b = self.regs[rs2]
-                    if opcode == 'add': val = a + b
-                    elif opcode == 'sub': val = a - b
-                    elif opcode == 'mul': val = a * b
-                    else: 
-                        val = a // b if b != 0 else 0
-                    params = ['reg_write', rd, val]
-                elif opcode == 'addi':
-                    rd = int(partes[1][1:]); rs1 = int(partes[2][1:]); imm = int(partes[3])
-                    val = self.regs[rs1] + imm
-                    params = ['reg_write', rd, val]
-                elif opcode == 'sw':
-                    rs2 = int(partes[1][1:])
-                    offset_reg = partes[2]
-                    offset, rs1 = offset_reg.split('(')
-                    offset = int(offset); rs1 = int(rs1[1:-1])
-                    addr = self.regs[rs1] + offset
-                    val = self.regs[rs2]
-                    params = ['mem_write', addr, val]
-                elif opcode == 'lw':
-                    rd = int(partes[1][1:])
-                    offset_reg = partes[2]
-                    offset, rs1 = offset_reg.split('(')
-                    offset = int(offset); rs1 = int(rs1[1:-1])
-                    addr = self.regs[rs1] + offset
-                    params = ['mem_read_and_reg_write', rd, addr]
-                else:
-                    params = []
-            except Exception:
-                params = []
-
+            # Obtener params que Execute.py ya calculó
+            params = getattr(self.etapa_execute, 'params', []) or []
+            
             self.etapa_store.cargarInstruccion(instr, params)
             # Limpiar Execute
             self.etapa_execute.instruccionEjecutando = ""
@@ -172,7 +176,9 @@ class CPUpipelineNoHazard:
         # RegisterFile → Execute (si RegFile completa y Execute está libre)
         if self.etapa_registerFile.getInstruccion() != "" and self.etapa_execute.esta_libre():
             instr = self.etapa_registerFile.getInstruccion()
-            self.etapa_execute.cargarInstruccion(instr, [])
+            # Pasar los params (operandos leídos) que RegisterFile calculó
+            params = getattr(self.etapa_registerFile, 'params', []) or []
+            self.etapa_execute.cargarInstruccion(instr, params)
             # Limpiar RegisterFile
             self.etapa_registerFile.instruccionEjecutando = ""
             self.etapa_registerFile.ocupada = False

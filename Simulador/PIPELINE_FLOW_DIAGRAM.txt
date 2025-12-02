@@ -1,0 +1,325 @@
+================================================================================
+                    DIAGRAMA DE FLUJO DEL PIPELINE
+           (Movimiento de atrás hacia adelante: Store → Fetch)
+================================================================================
+
+INSTRUCCIONES DE EJEMPLO:
+  I1: addi x1, x0, 15       (latencia 1 ciclo)
+  I2: addi x2, x0, 7        (latencia 1 ciclo)
+  I3: xor x3, x1, x2        (latencia 1 ciclo)
+  I4: and x4, x1, x2        (latencia 1 ciclo)
+
+================================================================================
+CICLO 0: Estado inicial (pipeline vacío)
+================================================================================
+
+  Fetch        Decode       RegisterFile    Execute      Store
+  -----        ------       --------        -------      -----
+  Libre        Libre        Libre           Libre        Libre
+
+
+================================================================================
+CICLO 1: Cargamos I1 en Fetch
+================================================================================
+
+ORDEN DE OPERACIONES EN ESTE CICLO:
+  1. tick() en todas las etapas (reducen ciclos_restantes)
+  2. Movimiento de atrás → adelante:
+     - Store ejecuta efectos (no hay nada)
+     - Execute → Store (no hay nada)
+     - RegisterFile → Execute (no hay nada)
+     - Decode → RegisterFile (no hay nada)
+     - Fetch → Decode (no hay nada)
+  3. Cargar nueva instrucción en Fetch
+
+RESULTADO:
+  Fetch        Decode       RegisterFile    Execute      Store
+  -----        ------       --------        -------      -----
+  I1           Libre        Libre           Libre        Libre
+  (1 ciclo)
+
+
+================================================================================
+CICLO 2: Cargamos I2 en Fetch, I1 avanza de Fetch → Decode
+================================================================================
+
+ORDEN DE OPERACIONES EN ESTE CICLO:
+  1. tick() en todas las etapas
+     - Fetch.ciclos_restantes: 1 → 0 (I1 completado)
+     - Decode: ocioso
+     - RegisterFile: ocioso
+     - Execute: ocioso
+     - Store: ocioso
+  
+  2. Movimiento de atrás → adelante:
+     - Store ejecuta efectos (vacío)
+     - Execute → Store (vacío)
+     - RegisterFile → Execute (vacío)
+     - Decode → RegisterFile (vacío)
+     - Fetch → Decode: ¡I1 avanza!
+       • Decode carga I1
+       • Fetch limpia su instrucción
+     - Cargar nueva en Fetch:
+       • Fetch carga I2
+
+RESULTADO:
+  Fetch        Decode       RegisterFile    Execute      Store
+  -----        ------       --------        -------      -----
+  I2           I1           Libre           Libre        Libre
+  (1 ciclo)    (1 ciclo)
+
+
+================================================================================
+CICLO 3: Cargamos I3, I2 pasa a Decode, I1 pasa a RegisterFile
+================================================================================
+
+ORDEN DE OPERACIONES EN ESTE CICLO:
+  1. tick() en todas las etapas
+     - Fetch.ciclos_restantes: 1 → 0 (I2 completado)
+     - Decode.ciclos_restantes: 1 → 0 (I1 completado)
+     - RegisterFile: ocioso
+     - Execute: ocioso
+     - Store: ocioso
+  
+  2. Movimiento de atrás → adelante:
+     - Store ejecuta efectos (vacío)
+     - Execute → Store (vacío)
+     - RegisterFile → Execute (vacío)
+     - Decode → RegisterFile: ¡I1 avanza!
+       • RegisterFile carga I1
+       • Lee operandos: x0=0, x0=0
+       • params = ['alu_op_imm', 'addi', 1, 0, 15, 0]
+       • Decode limpia su instrucción
+     - Fetch → Decode: ¡I2 avanza!
+       • Decode carga I2
+       • Fetch limpia su instrucción
+     - Cargar nueva en Fetch:
+       • Fetch carga I3
+
+RESULTADO:
+  Fetch        Decode       RegisterFile    Execute      Store
+  -----        ------       --------        -------      -----
+  I3           I2           I1              Libre        Libre
+  (1 ciclo)    (1 ciclo)    (1 ciclo)
+
+
+================================================================================
+CICLO 4: Cargamos I4, I3 pasa a Decode, I2 pasa a RegisterFile, 
+         I1 pasa a Execute (ejecuta ALU)
+================================================================================
+
+ORDEN DE OPERACIONES EN ESTE CICLO:
+  1. tick() en todas las etapas
+     - Fetch.ciclos_restantes: 1 → 0 (I3 completado)
+     - Decode.ciclos_restantes: 1 → 0 (I2 completado)
+     - RegisterFile.ciclos_restantes: 1 → 0 (I1 completado)
+     - Execute: ocioso
+     - Store: ocioso
+  
+  2. Movimiento de atrás → adelante:
+     - Store ejecuta efectos (vacío)
+     - Execute → Store (vacío)
+     - RegisterFile → Execute: ¡I1 avanza!
+       • Execute carga I1 con params = ['alu_op_imm', 'addi', 1, 0, 15, 0]
+       • ALU ejecuta: resultado = 0 + 15 = 15
+       • Execute.params = ['reg_write', 1, 15]
+       • RegisterFile limpia su instrucción
+     - Decode → RegisterFile: ¡I2 avanza!
+       • RegisterFile carga I2
+       • Lee operandos: x0=0, x0=0
+       • params = ['alu_op_imm', 'addi', 2, 0, 7, 0]
+       • Decode limpia su instrucción
+     - Fetch → Decode: ¡I3 avanza!
+       • Decode carga I3
+       • Fetch limpia su instrucción
+     - Cargar nueva en Fetch:
+       • Fetch carga I4
+
+RESULTADO:
+  Fetch        Decode       RegisterFile    Execute      Store
+  -----        ------       --------        -------      -----
+  I4           I3           I2              I1           Libre
+  (1 ciclo)    (1 ciclo)    (1 ciclo)      (1 ciclo)
+
+
+================================================================================
+CICLO 5: Cargamos (nada más), I4 a Decode, I3 a RegisterFile,
+         I2 a Execute, I1 a Store (ESCRIBE x1=15)
+================================================================================
+
+ORDEN DE OPERACIONES EN ESTE CICLO:
+  1. tick() en todas las etapas
+     - Fetch.ciclos_restantes: 1 → 0 (I4 completado)
+     - Decode.ciclos_restantes: 1 → 0 (I3 completado)
+     - RegisterFile.ciclos_restantes: 1 → 0 (I2 completado)
+     - Execute.ciclos_restantes: 1 → 0 (I1 completado)
+     - Store: ocioso
+  
+  2. Movimiento de atrás → adelante:
+     *** ORDEN CRÍTICO: DE ATRÁS HACIA ADELANTE ***
+     
+     - Store ejecuta efectos:
+       • params = ['reg_write', 1, 15]
+       • ✅ ESCRIBE: self.regs[1] = 15
+       • [CICLO 5] [COMPLETADA] addi x1, x0, 15
+       • [STORE] Registro x1 <- 15
+       • Store limpia su instrucción
+     
+     - Execute → Store: ¡I2 avanza!
+       • params = ['alu_op_imm', 'addi', 2, 0, 7, 0]
+       • ALU ejecuta: resultado = 0 + 7 = 7
+       • Execute.params = ['reg_write', 2, 7]
+       • Store carga I2 con params = ['reg_write', 2, 7]
+       • Execute limpia su instrucción
+     
+     - RegisterFile → Execute: ¡I3 avanza!
+       • Execute carga I3 con params (leer x1, x2)
+       • ✅ LEE: x1=15 (ya escrito en Store anterior de este ciclo)
+       • ✅ LEE: x2=0 (aún no escrito)
+       • params = ['alu_op', 'xor', 3, 1, 2, 15, 0]
+       • RegisterFile limpia su instrucción
+     
+     - Decode → RegisterFile: ¡I4 avanza!
+       • RegisterFile carga I4
+       • Lee operandos: x1=15, x2=0
+       • params = ['alu_op', 'and', 4, 1, 2, 15, 0]
+       • Decode limpia su instrucción
+     
+     - Fetch → Decode: ¡Nada (no hay I5)
+     
+     - Cargar nueva en Fetch:
+       • No hay más instrucciones
+
+RESULTADO:
+  Fetch        Decode       RegisterFile    Execute      Store
+  -----        ------       --------        -------      -----
+  Libre        I4           I3              I2           I1
+             (1 ciclo)    (1 ciclo)      (1 ciclo)    (1 ciclo)
+
+
+================================================================================
+CICLO 6: Sin nuevas instrucciones, todo avanza
+================================================================================
+
+ORDEN DE OPERACIONES EN ESTE CICLO:
+  1. tick() en todas las etapas
+  
+  2. Movimiento:
+     - Store ejecuta: ESCRIBE x2 = 7 ✅
+     - Execute → Store: I3 avanza (xor)
+       • ALU: resultado = 15 XOR 0 = 15 ❌ (debería ser 8, pero x2=0 por RAW)
+       • params = ['reg_write', 3, 15]
+     - RegisterFile → Execute: I4 avanza (and)
+       • params = ['alu_op', 'and', 4, 1, 2, 15, 7]  ✅ x2 ahora es 7
+     - Decode → RegisterFile: (Libre)
+     - Fetch → Decode: (Libre)
+
+RESULTADO:
+  Fetch        Decode       RegisterFile    Execute      Store
+  -----        ------       --------        -------      -----
+  Libre        Libre        I4              I3           I2
+                          (1 ciclo)      (1 ciclo)    (1 ciclo)
+
+
+================================================================================
+CICLO 7: Continúa...
+================================================================================
+
+  1. tick()
+  2. Movimiento:
+     - Store: ESCRIBE x3 = 15 (producto de RAW)
+     - Execute → Store: I4 avanza (and)
+       • ALU: resultado = 15 AND 7 = 7 ✅
+       • params = ['reg_write', 4, 7]
+     - RegisterFile → Execute: (Libre)
+     - Decode → RegisterFile: (Libre)
+     - Fetch → Decode: (Libre)
+
+RESULTADO:
+  Fetch        Decode       RegisterFile    Execute      Store
+  -----        ------       --------        -------      -----
+  Libre        Libre        Libre           I4           I3
+                                          (1 ciclo)    (1 ciclo)
+
+
+================================================================================
+CICLO 8: I4 completa
+================================================================================
+
+  1. Store: ESCRIBE x4 = 7
+  2. Execute → Store: I4 → Store (completando)
+     • params = ['reg_write', 4, 7]
+  3. Resto: vacío
+
+RESULTADO:
+  Fetch        Decode       RegisterFile    Execute      Store
+  -----        ------       --------        -------      -----
+  Libre        Libre        Libre           Libre        I4
+                                                       (1 ciclo)
+
+
+================================================================================
+CICLO 9: Pipeline vacío, fin de simulación
+================================================================================
+
+  1. Store: ESCRIBE x4 = 7 (última instrucción)
+  2. Resto: todo vacío
+
+RESULTADO FINAL DEL REGISTRO:
+  x1 = 15 ✅
+  x2 = 7 ✅
+  x3 = 15 ❌ (debería ser 8, pero had RAW con x2)
+  x4 = 7 ✅
+
+
+================================================================================
+                         POR QUÉ "ATRÁS HACIA ADELANTE"
+================================================================================
+
+CLAVE: En CICLO 5, observamos lo importante:
+
+  1. Store ejecuta PRIMERO → ✅ ESCRIBE x1 = 15
+  2. Execute → Store → I2 avanza CON x1 = 15 ya disponible
+  3. RegisterFile → Execute → I3 LEE x1 = 15 (justo escrito)
+
+Si fuera de adelante hacia atrás (Fetch → Store):
+
+  1. Fetch → Decode → I3 avanza
+  2. Decode → RegisterFile → I3 avanza
+  3. RegisterFile → Execute → I3 LEE x1 = 0 (aún no disponible)
+  4. Execute → Store → I2 avanza
+  5. Store → I1 ESCRIBE x1 = 15
+
+¡TODO EN EL MISMO CICLO! Eso viola la semantics del pipeline.
+
+Con "atrás hacia adelante":
+  - Store completa primero
+  - Execute recibe el resultado completado
+  - RegisterFile LEE los valores ya escritos
+  - Cada instrucción progresa exactamente 1 etapa por ciclo ✅
+
+
+================================================================================
+                            RESUMEN VISUAL
+================================================================================
+
+Ciclo:   0      1      2        3         4           5
+        ---    ---    ----     ----      ----        ----
+Fetch   [ ]    [I1]   [I2]     [I3]      [I4]        [ ]
+Decode  [ ]    [ ]    [I1]     [I2]      [I3]        [I4]
+RegFile [ ]    [ ]    [ ]      [I1]      [I2]        [I3]
+Execute [ ]    [ ]    [ ]      [ ]       [I1]        [I2]
+Store   [ ]    [ ]    [ ]      [ ]       [ ]         [I1]
+                                                      ✅ESCRIBE
+
+
+Ciclo 6:  Ciclo 7:  Ciclo 8:  Ciclo 9:
+-------   -------   -------   -------
+[ ]       [ ]       [ ]       [ ]
+Libre     Libre     Libre     Libre
+[I4]      Libre     Libre     Libre
+[I3]      [I4]      Libre     Libre
+[I2]      [I3]      [I4]      Libre
+✅x2=7    ✅x3=15   ✅x4=7    [FIN]
+
+================================================================================

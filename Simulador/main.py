@@ -19,87 +19,49 @@ riscv_code = [
     "        .globl _start",
     "",
     "_start:",
-    "        #-------------------------------------------------",
-    "        # Inicialización",
-    "        #-------------------------------------------------",
-    "        la x5, count         # x5 = dirección del contador",
-    "        la x6, limit         # x6 = dirección del límite",
-    "        lw x7, 0(x5)         # x7 = count = 0",
-    "        lw x8, 0(x6)         # x8 = limit = 500",
-    "",
-    "loop:",
-    "        #-------------------------------------------------",
-    "        # Cuerpo del bucle: cada iteración implica un salto",
-    "        #-------------------------------------------------",
-    "        addi x7, x7, 1       # count++",
-    "        sw x7, 0(x5)         # Guardar en memoria (1 acceso write)",
-    "",
-    "        # Condicional: si count < limit → saltar a loop",
-    "        blt x7, x8, loop     # Branch condicional (salto)",
-    "        addi x0, x0, 0       # NOP para evitar hazard de control (si no hay hardware)",
-    "",
-    "        # Si no se cumple, continúa aquí",
-    "end:",
-    "        # Salto incondicional final",
-    "        jal x0, done         # Jump sin retorno (salto absoluto)",
-    "        addi x0, x0, 0       # NOP (evita usar PC incorrecto si no hay branch forwarding)",
-    "",
-    "done:",
-    "        # Fin del programa",
-    "        nop                  # No operation (última instrucción)"
-]
-"""
-riscv_code = [
-    "#=========================================================",
-    "# PROGRAMA: Conteo de saltos (branch y jump)",
-    "# OBJETIVO: Realizar miles de saltos condicionales e",
-    "#           incondicionales y documentar cuántos ocurren.",
-    "# COMPATIBLE CON: Ripes (RISC-V RV32I)",
-    "#=========================================================",
-    "",
-    "        .data",
-    "count:  .word 0             # Contador de iteraciones",
-    "limit:  .word 500          # Límite (miles de saltos)",
-    "msg:    .string \"Fin del programa\\n\"",
-    "",
-    "        .text",
-    "        .globl _start",
-    "",
-    "_start:",
             "addi x1, x0, 5        # x1 = 5",
             "addi x2, x0, 10       # x2 = 10",
-            "add x3, x1, x2        # x3 = 15",
-            "sw x3, 0(x0)          # Mem[0] = 15",
-            "",
-            "addi x4, x3, 2        # x4 = 17",
-            "sw x4, 4(x0)          # Mem[4] = 17",
-            "",
-            "sub x5, x4, x1        # x5 = 12",
-            "sw x5, 8(x0)          # Mem[8] = 12",
-            "",
-            "add x6, x5, x5        # x6 = 24",
-            "sw x6, 12(x0)         # Mem[12] = 24",
-            "",
-            "lw x7, 0(x0)          # x7 = 15",
-            "lw x8, 4(x0)          # x8 = 17",
-            "lw x9, 8(x0)          # x9 = 12",
-            "lw x10, 12(x0)        # x10 = 24",
-            "add x11, x7, x8       # x11 = 32",
-            "add x12, x9, x10      # x12 = 36",
-            "sw x11, 16(x0)        # Mem[16] = 32",
-            "sw x12, 20(x0)        # Mem[20] = 36",
-            "",
-            "lw x13, 16(x0)        # x13 = 32",
-            "lw x14, 20(x0)        # x14 = 36",
-            "add x15, x13, x14     # x15 = 68",
-            "sw x15, 24(x0)        # Mem[24] = 68"
+            "add x3, x1, x2        # x3 = x1 + x2 (x3 = 15)",
+            "add x4, x3, x1        # RAW: x4 depende de x3 recién escrito",
+            "add x5, x3, x2        # RAW: x5 depende de x3 recién escrito",
+            "add x6, x4, x5        # RAW: x6 depende de x4 y x5 recién escritos"
     "done:",
     "        # Fin del programa",
     "        nop                  # No operation (última instrucción)"
 ]
 
+"""
 
-
+riscv_code = [
+    "# ============================================================",
+    "# DEMOSTRACIÓN: Branch (beq) - Salto condicional",
+    "# ============================================================",
+    "",
+    "addi x1, x0, 5         # x1 = 5",
+    "addi x2, x0, 5         # x2 = 5",
+    "nop",
+    "nop",
+    "nop",
+    "nop",
+    "beq x1, x2, igual      # Si x1 == x2, saltar a 'igual'",
+    "addi x3, x0, 99        # x3 = 99 (NO se ejecuta si branch tomado)",
+    "addi x4, x0, 88        # x4 = 88 (NO se ejecuta si branch tomado)",
+    "igual:",
+    "addi x5, x0, 10        # x5 = 10 (se ejecuta si branch tomado)",
+    "nop",
+    "nop",
+    "nop",
+    "nop",
+    "addi x6, x5, 5         # x6 = 10 + 5 = 15",
+    "",
+    "# Resultado esperado (con branch tomado):",
+    "#   x1 = 5",
+    "#   x2 = 5",
+    "#   x3 = 0 (instrucción saltada)",
+    "#   x4 = 0 (instrucción saltada)",
+    "#   x5 = 10",
+    "#   x6 = 15",
+]
 
 cpu = CPU()
 cpuPipeline=CPUpipelineNoHazard()
@@ -109,10 +71,79 @@ cpuPipeline.ejecutar()
 # cpu.ejecutar(riscv_code)
 # cpu.ejecutar_todo()
 
+print("\n" + "=" * 80)
+print("ANÁLISIS DE HAZARDS")
+print("=" * 80)
 
+print(f"\nValores finales en registros:")
+print(f"  x1 = {cpuPipeline.regs[1]} (esperado: 100)")
+print(f"  x2 = {cpuPipeline.regs[2]} (esperado: 150)")
+print(f"  x3 = {cpuPipeline.regs[3]} (esperado: 175)")
 
+print("\n" + "=" * 80)
+print("VERIFICACIÓN DE BRANCH (beq)")
+print("=" * 80)
 
-print("\nEjecución completada. Revisa 'log.txt' y 'memoria_salida.txt'.")
+print(f"\nRegistros:")
+print(f"  x1 = {cpuPipeline.regs[1]} (esperado: 5)")
+print(f"  x2 = {cpuPipeline.regs[2]} (esperado: 5)")
+print(f"  x3 = {cpuPipeline.regs[3]} (esperado: 0 - instrucción saltada)")
+print(f"  x4 = {cpuPipeline.regs[4]} (esperado: 0 - instrucción saltada)")
+print(f"  x5 = {cpuPipeline.regs[5]} (esperado: 10)")
+print(f"  x6 = {cpuPipeline.regs[6]} (esperado: 15)")
+
+print("\n" + "=" * 80)
+print("VERIFICACIÓN")
+print("=" * 80)
+
+errores = 0
+
+if cpuPipeline.regs[1] == 5:
+    print(f"[OK] x1 = 5")
+else:
+    print(f"[ERROR] x1 = {cpuPipeline.regs[1]} (esperado 5)")
+    errores += 1
+
+if cpuPipeline.regs[2] == 5:
+    print(f"[OK] x2 = 5")
+else:
+    print(f"[ERROR] x2 = {cpuPipeline.regs[2]} (esperado 5)")
+    errores += 1
+
+if cpuPipeline.regs[3] == 0:
+    print(f"[OK] x3 = 0 (instrucción saltada por branch)")
+else:
+    print(f"[ERROR] x3 = {cpuPipeline.regs[3]} (esperado 0, branch no funciono)")
+    errores += 1
+
+if cpuPipeline.regs[4] == 0:
+    print(f"[OK] x4 = 0 (instrucción saltada por branch)")
+else:
+    print(f"[ERROR] x4 = {cpuPipeline.regs[4]} (esperado 0, branch no funciono)")
+    errores += 1
+
+if cpuPipeline.regs[5] == 10:
+    print(f"[OK] x5 = 10")
+else:
+    print(f"[ERROR] x5 = {cpuPipeline.regs[5]} (esperado 10)")
+    errores += 1
+
+if cpuPipeline.regs[6] == 15:
+    print(f"[OK] x6 = 15")
+else:
+    print(f"[ERROR] x6 = {cpuPipeline.regs[6]} (esperado 15)")
+    errores += 1
+
+print("\n" + "=" * 80)
+if errores == 0:
+    print("[EXITO] Branch (beq) funciona correctamente")
+    print("  - Condición evaluada: x1 == x2 (5 == 5) -> TOMADO")
+    print("  - Instrucciones saltadas: 2 (x3, x4)")
+    print("  - Pipeline flushed correctamente")
+else:
+    print(f"[ERROR] Se encontraron {errores} errores")
+
+print("=" * 80)
 
 
 
