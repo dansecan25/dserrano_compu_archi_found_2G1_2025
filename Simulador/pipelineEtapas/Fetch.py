@@ -7,8 +7,8 @@ class Fetch():
     def __init__(self):
         self.instruccionEjecutando = ""
         self.params = []
-        self.ciclos_restantes = 0  # Ciclos que faltan para completar la etapa
-        self.ocupada = False       # True si está procesando una instrucción
+        self.ciclos_restantes:int = 0  # Ciclos que faltan para completar la etapa
+        self.ocupada:bool = False       # True si está procesando una instrucción
         self.latencia = get_stage_latency('Fetch')
 
     def cargarInstruccion(self, instruccion, params):
