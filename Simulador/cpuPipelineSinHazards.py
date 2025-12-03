@@ -220,7 +220,6 @@ class CPUpipelineNoHazard:
             instr = self.etapa_registerFile.getInstruccion()
             # Pasar los params (operandos leídos) que RegisterFile calculó
             params = getattr(self.etapa_registerFile, 'params', []) or []
-            print(f"Params enviados a Execute: {params}")
             self.etapa_execute.cargarInstruccion(instr, params)
             # Limpiar RegisterFile
             self.etapa_registerFile.instruccionEjecutando = ""
@@ -229,7 +228,7 @@ class CPUpipelineNoHazard:
         # Decode → RegisterFile (si Decode completa y RegFile está libre)
         if self.etapa_decode.getInstruccion() != "" and self.etapa_registerFile.esta_libre():
             instr = self.etapa_decode.getInstruccion()
-            self.etapa_registerFile.cargarInstruccion(instr, [])
+            self.etapa_registerFile.cargarInstruccion(instr)
             # Limpiar Decode
             self.etapa_decode.instruccionEjecutando = ""
             self.etapa_decode.ocupada = False
@@ -246,7 +245,6 @@ class CPUpipelineNoHazard:
         if self.indice_instruccion < len(self.instrucciones_cola) * 4 and self.etapa_fetch.esta_libre():
             instr = self.instrucciones_cola[self.indice_instruccion // 4]
             self.etapa_fetch.cargarInstruccion(instr, [])
-            print(f"Intruccion enviada {self.instrucciones_cola}")
             self.indice_instruccion += 4
 
         self.ciclo_actual += 1

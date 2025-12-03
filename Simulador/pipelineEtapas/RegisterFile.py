@@ -12,7 +12,7 @@ class RegisterFile():
         self.latencia = get_stage_latency('RegisterFile')
         self.regs = regs if regs is not None else [0] * 32  # Referencia al banco de registros
 
-    def cargarInstruccion(self, instruccion, params):
+    def cargarInstruccion(self, instruccion):
         """Carga una instrucción si la etapa está libre y lee los operandos del banco de registros."""
         if not self.ocupada:
             self.instruccionEjecutando = instruccion
