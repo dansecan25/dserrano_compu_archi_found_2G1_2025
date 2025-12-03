@@ -82,6 +82,14 @@ class RegisterFile():
                     val_rs2 = self.regs[rs2] if 0 <= rs2 < len(self.regs) else 0
                     self.params = ['branch', 'beq', rs1, rs2, val_rs1, val_rs2, label_or_offset]
                     print(f"[REGISTER_FILE] Branch: {instruccion}, x{rs1}={val_rs1}, x{rs2}={val_rs2}, target={label_or_offset}, latencia={self.latencia} ciclos")
+                
+                elif opcode == 'jal':
+                    # Format: jal rd, label
+                    rd = int(partes[1][1:]) if len(partes) > 1 else 0
+                    label = partes[2] if len(partes) > 2 else '0'
+                    # jal es salto incondicional, guarda PC+1 en rd
+                    self.params = ['jump', 'jal', rd, label]
+                    print(f"[REGISTER_FILE] Jump: {instruccion}, rd=x{rd}, target={label}, latencia={self.latencia} ciclos")
                     
                 else:
                     # Instrucción desconocida o etiqueta

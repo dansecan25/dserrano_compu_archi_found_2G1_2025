@@ -34,33 +34,63 @@ riscv_code = [
 
 riscv_code = [
     "# ============================================================",
-    "# DEMOSTRACIÓN: Branch (beq) - Salto condicional",
+    "# DEMOSTRACIÓN: Jump and Link (jal)",
     "# ============================================================",
     "",
-    "addi x1, x0, 5         # x1 = 5",
-    "addi x2, x0, 5         # x2 = 5",
+    "# MAIN: Código principal",
+    "addi x1, x0, 100       # x1 = 100",
     "nop",
     "nop",
     "nop",
     "nop",
-    "beq x1, x2, igual      # Si x1 == x2, saltar a 'igual'",
-    "addi x3, x0, 99        # x3 = 99 (NO se ejecuta si branch tomado)",
-    "addi x4, x0, 88        # x4 = 88 (NO se ejecuta si branch tomado)",
-    "igual:",
-    "addi x5, x0, 10        # x5 = 10 (se ejecuta si branch tomado)",
+    "jal x2, funcion1       # Llamar a funcion1, guardar PC+1 en x2",
+    "despues_jal1:",
+    "addi x5, x0, 50        # x5 = 50 (después de retornar de funcion1)",
     "nop",
     "nop",
     "nop",
     "nop",
-    "addi x6, x5, 5         # x6 = 10 + 5 = 15",
+    "jal x6, funcion2       # Llamar a funcion2, guardar PC+1 en x6",
+    "despues_jal2:",
+    "addi x8, x0, 88        # x8 = 88 (código final)",
     "",
-    "# Resultado esperado (con branch tomado):",
-    "#   x1 = 5",
-    "#   x2 = 5",
-    "#   x3 = 0 (instrucción saltada)",
-    "#   x4 = 0 (instrucción saltada)",
-    "#   x5 = 10",
-    "#   x6 = 15",
+    "# FIN - loop infinito para detener ejecución",
+    "fin:",
+    "jal x0, fin            # Loop infinito (salta a sí mismo)",
+    "",
+    "# FUNCION 1",
+    "funcion1:",
+    "addi x10, x0, 10       # x10 = 10",
+    "addi x11, x0, 20       # x11 = 20",
+    "nop",
+    "nop",
+    "nop",
+    "nop",
+    "add x12, x10, x11      # x12 = 10 + 20 = 30",
+    "nop",
+    "nop",
+    "nop",
+    "nop",
+    "jal x0, despues_jal1   # Retornar a despues_jal1",
+    "",
+    "# FUNCION 2",
+    "funcion2:",
+    "addi x15, x0, 77       # x15 = 77",
+    "addi x16, x0, 33       # x16 = 33",
+    "nop",
+    "nop",
+    "nop",
+    "nop",
+    "jal x0, despues_jal2   # Retornar a despues_jal2",
+    "",
+    "# Resultado esperado:",
+    "#   x1  = 100",
+    "#   x2  = 24 (PC del primer jal = 20, entonces guardamos 24)",
+    "#   x5  = 50",
+    "#   x6  = 48 (PC del segundo jal = 44, entonces guardamos 48)",
+    "#   x8  = 88",
+    "#   x10 = 10, x11 = 20, x12 = 30",
+    "#   x15 = 77, x16 = 33",
 ]
 
 cpu = CPU()
@@ -72,78 +102,71 @@ cpuPipeline.ejecutar()
 # cpu.ejecutar_todo()
 
 print("\n" + "=" * 80)
-print("ANÁLISIS DE HAZARDS")
+print("ANALISIS DE RESULTADOS - JAL (Jump and Link)")
 print("=" * 80)
 
-print(f"\nValores finales en registros:")
-print(f"  x1 = {cpuPipeline.regs[1]} (esperado: 100)")
-print(f"  x2 = {cpuPipeline.regs[2]} (esperado: 150)")
-print(f"  x3 = {cpuPipeline.regs[3]} (esperado: 175)")
+print(f"\n[REGISTROS PRINCIPALES]")
+print(f"  x1  = {cpuPipeline.regs[1]:3d} (esperado: 100)")
+print(f"  x2  = {cpuPipeline.regs[2]:3d} (esperado: 24 - return address)")
+print(f"  x5  = {cpuPipeline.regs[5]:3d} (esperado: 50)")
+print(f"  x6  = {cpuPipeline.regs[6]:3d} (esperado: 48 - return address)")
+print(f"  x8  = {cpuPipeline.regs[8]:3d} (esperado: 88)")
+
+print(f"\n[FUNCION 1]")
+print(f"  x10 = {cpuPipeline.regs[10]:3d} (esperado: 10)")
+print(f"  x11 = {cpuPipeline.regs[11]:3d} (esperado: 20)")
+print(f"  x12 = {cpuPipeline.regs[12]:3d} (esperado: 30 = x10 + x11)")
+
+print(f"\n[FUNCION 2]")
+print(f"  x15 = {cpuPipeline.regs[15]:3d} (esperado: 77)")
+print(f"  x16 = {cpuPipeline.regs[16]:3d} (esperado: 33)")
 
 print("\n" + "=" * 80)
-print("VERIFICACIÓN DE BRANCH (beq)")
-print("=" * 80)
-
-print(f"\nRegistros:")
-print(f"  x1 = {cpuPipeline.regs[1]} (esperado: 5)")
-print(f"  x2 = {cpuPipeline.regs[2]} (esperado: 5)")
-print(f"  x3 = {cpuPipeline.regs[3]} (esperado: 0 - instrucción saltada)")
-print(f"  x4 = {cpuPipeline.regs[4]} (esperado: 0 - instrucción saltada)")
-print(f"  x5 = {cpuPipeline.regs[5]} (esperado: 10)")
-print(f"  x6 = {cpuPipeline.regs[6]} (esperado: 15)")
-
-print("\n" + "=" * 80)
-print("VERIFICACIÓN")
+print("VERIFICACION DETALLADA")
 print("=" * 80)
 
 errores = 0
 
-if cpuPipeline.regs[1] == 5:
-    print(f"[OK] x1 = 5")
-else:
-    print(f"[ERROR] x1 = {cpuPipeline.regs[1]} (esperado 5)")
-    errores += 1
+tests = [
+    (1, 100, "x1 (main)"),
+    (2, 24, "x2 (return address 1)"),
+    (5, 50, "x5 (despues de funcion1)"),
+    (6, 48, "x6 (return address 2)"),
+    (8, 88, "x8 (codigo final)"),
+    (10, 10, "x10 (funcion1)"),
+    (11, 20, "x11 (funcion1)"),
+    (12, 30, "x12 (suma en funcion1)"),
+    (15, 77, "x15 (funcion2)"),
+    (16, 33, "x16 (funcion2)"),
+]
 
-if cpuPipeline.regs[2] == 5:
-    print(f"[OK] x2 = 5")
-else:
-    print(f"[ERROR] x2 = {cpuPipeline.regs[2]} (esperado 5)")
-    errores += 1
-
-if cpuPipeline.regs[3] == 0:
-    print(f"[OK] x3 = 0 (instrucción saltada por branch)")
-else:
-    print(f"[ERROR] x3 = {cpuPipeline.regs[3]} (esperado 0, branch no funciono)")
-    errores += 1
-
-if cpuPipeline.regs[4] == 0:
-    print(f"[OK] x4 = 0 (instrucción saltada por branch)")
-else:
-    print(f"[ERROR] x4 = {cpuPipeline.regs[4]} (esperado 0, branch no funciono)")
-    errores += 1
-
-if cpuPipeline.regs[5] == 10:
-    print(f"[OK] x5 = 10")
-else:
-    print(f"[ERROR] x5 = {cpuPipeline.regs[5]} (esperado 10)")
-    errores += 1
-
-if cpuPipeline.regs[6] == 15:
-    print(f"[OK] x6 = 15")
-else:
-    print(f"[ERROR] x6 = {cpuPipeline.regs[6]} (esperado 15)")
-    errores += 1
+for reg, esperado, descripcion in tests:
+    valor_real = cpuPipeline.regs[reg]
+    if valor_real == esperado:
+        print(f"[OK] {descripcion}: {valor_real} == {esperado}")
+    else:
+        print(f"[ERROR] {descripcion}: {valor_real} != {esperado}")
+        errores += 1
 
 print("\n" + "=" * 80)
+print("RESUMEN DE VALIDACION")
+print("=" * 80)
+
 if errores == 0:
-    print("[EXITO] Branch (beq) funciona correctamente")
-    print("  - Condición evaluada: x1 == x2 (5 == 5) -> TOMADO")
-    print("  - Instrucciones saltadas: 2 (x3, x4)")
-    print("  - Pipeline flushed correctamente")
+    print("[OK] TODOS LOS TESTS PASARON")
+    print("\nFuncionalidad JAL validada:")
+    print("  - Salto incondicional a labels")
+    print("  - Guardado de direccion de retorno en rd")
+    print("  - Pipeline flush en cada jal")
+    print("  - Llamadas a funciones y retornos")
+    print("  - JAL anidado (funciones que llaman a otras)")
 else:
-    print(f"[ERROR] Se encontraron {errores} errores")
+    print(f"[ERROR] FALLO {errores} TEST(S)")
+    print("    Revisar implementacion de JAL")
 
 print("=" * 80)
+
+
 
 
 

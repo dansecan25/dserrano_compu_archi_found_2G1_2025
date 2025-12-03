@@ -45,7 +45,7 @@ class CPUpipelineNoHazard:
                 # Detectar labels (formato: "label:")
                 if ':' in linea and not '(' in linea:  # Evitar confusión con offset(reg)
                     label_name = linea.split(':')[0].strip()
-                    self.labels[label_name] = len(self.codigo)
+                    self.labels[label_name] = len(self.codigo) * 4  # PC en múltiplos de 4
                     # Si hay instrucción después del label en la misma línea
                     resto = linea.split(':', 1)[1].strip()
                     if resto:
@@ -135,9 +135,9 @@ class CPUpipelineNoHazard:
                             if label_or_offset in self.labels:
                                 nuevo_pc = self.labels[label_or_offset]
                             else:
-                                # Asumir offset relativo
+                                # Asumir offset relativo (en bytes, múltiplo de 4)
                                 try:
-                                    nuevo_pc = self.indice_instruccion + int(label_or_offset)
+                                    nuevo_pc = self.indice_instruccion + int(label_or_offset) * 4
                                 except:
                                     nuevo_pc = self.indice_instruccion
                             
@@ -156,6 +156,48 @@ class CPUpipelineNoHazard:
                             self.log(f"[STORE] Pipeline flushed (Fetch/Decode/RegFile/Execute)")
                         else:
                             self.log(f"[STORE] Branch NO tomado")
+                    elif accion == 'jump_result':
+                        # Jump (jal) - siempre se toma
+                        rd, label = params[1], params[2]
+                        
+                        # Buscar el PC de la instrucción jal actual
+                        # La instrucción está en etapa_store, necesitamos encontrar su índice original
+                        instr_actual = self.etapa_store.get_instruccion_actual()
+                        pc_jal = -1
+                        for i, instr in enumerate(self.codigo):
+                            if instr == instr_actual:
+                                pc_jal = i * 4  # PC en múltiplos de 4
+                                break
+                        
+                        # Guardar dirección de retorno (PC de jal + 4) en rd
+                        if 0 < rd < len(self.regs) and pc_jal >= 0:  # x0 no puede ser escrito
+                            return_addr = pc_jal + 4
+                            self.regs[rd] = return_addr
+                            self.log(f"[STORE] JAL: x{rd} <- {return_addr} (return address)")
+                        
+                        # Resolver label y actualizar PC
+                        if label in self.labels:
+                            nuevo_pc = self.labels[label]
+                        else:
+                            # Asumir offset relativo desde PC de jal (en bytes)
+                            try:
+                                nuevo_pc = pc_jal + int(label) * 4
+                            except:
+                                nuevo_pc = pc_jal + 4
+                        
+                        self.log(f"[STORE] JAL: PC = {pc_jal} -> {nuevo_pc}")
+                        self.indice_instruccion = nuevo_pc
+                        
+                        # Flush pipeline (limpiar Fetch, Decode, RegisterFile, Execute)
+                        self.etapa_fetch.instruccionEjecutando = ""
+                        self.etapa_fetch.ocupada = False
+                        self.etapa_decode.instruccionEjecutando = ""
+                        self.etapa_decode.ocupada = False
+                        self.etapa_registerFile.instruccionEjecutando = ""
+                        self.etapa_registerFile.ocupada = False
+                        self.etapa_execute.instruccionEjecutando = ""
+                        self.etapa_execute.ocupada = False
+                        self.log(f"[STORE] Pipeline flushed (Fetch/Decode/RegFile/Execute)")
             except Exception:
                 pass
             # Limpiar la etapa Store después de completar
@@ -200,10 +242,10 @@ class CPUpipelineNoHazard:
             self.etapa_fetch.ocupada = False
 
         # 3. Cargar siguiente instrucción en Fetch (si hay y Fetch está libre)
-        if self.indice_instruccion < len(self.instrucciones_cola) and self.etapa_fetch.esta_libre():
-            instr = self.instrucciones_cola[self.indice_instruccion]
+        if self.indice_instruccion < len(self.instrucciones_cola) * 4 and self.etapa_fetch.esta_libre():
+            instr = self.instrucciones_cola[self.indice_instruccion // 4]
             self.etapa_fetch.cargarInstruccion(instr, [])
-            self.indice_instruccion += 1
+            self.indice_instruccion += 4
 
         self.ciclo_actual += 1
 
@@ -222,7 +264,7 @@ class CPUpipelineNoHazard:
             self.tick()
             
             # Condición de salida: no hay más instrucciones y pipeline está vacío
-            if (self.indice_instruccion >= len(self.instrucciones_cola) and
+            if (self.indice_instruccion >= len(self.instrucciones_cola) * 4 and
                 self.etapa_fetch.get_instruccion_actual() == "" and
                 self.etapa_decode.get_instruccion_actual() == "" and
                 self.etapa_registerFile.get_instruccion_actual() == "" and

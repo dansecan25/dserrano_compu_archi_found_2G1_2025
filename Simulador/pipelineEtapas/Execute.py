@@ -78,6 +78,14 @@ class Execute():
                         # Pasar info a Store (para actualizar PC si se toma)
                         resultado_params = ['branch_result', branch_taken, label_or_offset]
                         print(f"[EXECUTE] Branch {tipo}: x{rs1}({val_rs1}) vs x{rs2}({val_rs2}), taken={branch_taken}, target={label_or_offset}, latencia={self.ciclos_restantes} ciclos")
+                    
+                    elif accion == 'jump':
+                        # Estructura: ['jump', tipo, rd, label]
+                        tipo, rd, label = params[1:]
+                        # jal siempre salta (incondicional) y guarda PC+1 en rd
+                        # Pasar a Store: ['jump_result', rd, label]
+                        resultado_params = ['jump_result', rd, label]
+                        print(f"[EXECUTE] Jump {tipo}: rd=x{rd}, target={label}, latencia={self.ciclos_restantes} ciclos")
                         
                     else:
                         resultado_params = []
