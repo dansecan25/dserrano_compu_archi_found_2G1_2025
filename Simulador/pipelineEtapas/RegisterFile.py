@@ -7,8 +7,8 @@ class RegisterFile():
     def __init__(self, regs=None):
         self.instruccionEjecutando = ""
         self.params = []
-        self.ciclos_restantes = 0
-        self.ocupada = False
+        self.ciclos_restantes:int = 0
+        self.ocupada:bool = False
         self.latencia = get_stage_latency('RegisterFile')
         self.regs = regs if regs is not None else [0] * 32  # Referencia al banco de registros
 
