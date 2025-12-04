@@ -1,5 +1,5 @@
-=== LOG DE EJECUCIÓN DEL CPU PIPELINE ===
-Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
+=== LOG DE EJECUCIÓN DEL CPU PIPELINE CON PREDICCIÓN DE SALTOS ===
+Estrategia de predicción: always_not_taken
 ================================================================================
 
 38 instrucciones cargadas desde lista `riscv_code`
@@ -42,7 +42,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
   [036] addi x7, x0, 77
   [037] nop
 
-=== INICIANDO SIMULACIÓN DEL PIPELINE ===
+=== INICIANDO SIMULACIÓN DEL PIPELINE CON PREDICCIÓN DE SALTOS ===
 
 
 [CICLO   0] [PC=  0] Estado del Pipeline:
@@ -206,8 +206,10 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
   Store:        Procesando: nop (1 ciclos restantes)
 
 [CICLO 17] [COMPLETADA] nop
+[DECODE] Branch detectado: beq x1, x2, fin_bucle (PC=60)
+[DECODE] PREDICCIÓN: NO TOMADO (continuar secuencial)
 
-[CICLO  18] [PC= 72] Estado del Pipeline:
+[CICLO  18] [PC= 72] [ESPECULATIVO] Estado del Pipeline:
   Fetch:        Procesando: nop (1 ciclos restantes)
   Decode:       Procesando: jal x0, bucle (1 ciclos restantes)
   RegFile:      Procesando: beq x1, x2, fin_bucle (1 ciclos restantes)
@@ -216,7 +218,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 [CICLO 18] [COMPLETADA] nop
 
-[CICLO  19] [PC= 76] Estado del Pipeline:
+[CICLO  19] [PC= 76] [ESPECULATIVO] Estado del Pipeline:
   Fetch:        Procesando: nop (1 ciclos restantes)
   Decode:       Procesando: nop (1 ciclos restantes)
   RegFile:      Procesando: jal x0, bucle (1 ciclos restantes)
@@ -225,7 +227,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 [CICLO 19] [COMPLETADA] nop
 
-[CICLO  20] [PC= 80] Estado del Pipeline:
+[CICLO  20] [PC= 80] [ESPECULATIVO] Estado del Pipeline:
   Fetch:        Procesando: nop (1 ciclos restantes)
   Decode:       Procesando: nop (1 ciclos restantes)
   RegFile:      Procesando: nop (1 ciclos restantes)
@@ -233,7 +235,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
   Store:        Procesando: beq x1, x2, fin_bucle (1 ciclos restantes)
 
 [CICLO 20] [COMPLETADA] beq x1, x2, fin_bucle
-[STORE] Branch NO tomado
+[STORE] Branch PREDICCIÓN CORRECTA: PC=60, target=64
 
 [CICLO  21] [PC= 84] Estado del Pipeline:
   Fetch:        Procesando: addi x4, x0, 15 (1 ciclos restantes)
@@ -244,7 +246,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 [CICLO 21] [COMPLETADA] jal x0, bucle
 [STORE] JAL: PC = 64 -> 24
-[STORE] Pipeline flushed (Fetch/Decode/RegFile/Execute)
+[STORE] Pipeline flushed (JAL)
 
 [CICLO  22] [PC= 28] Estado del Pipeline:
   Fetch:        Procesando: addi x1, x1, 1 (1 ciclos restantes)
@@ -342,8 +344,10 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
   Store:        Procesando: nop (1 ciclos restantes)
 
 [CICLO 32] [COMPLETADA] nop
+[DECODE] Branch detectado: beq x1, x2, fin_bucle (PC=60)
+[DECODE] PREDICCIÓN: NO TOMADO (continuar secuencial)
 
-[CICLO  33] [PC= 72] Estado del Pipeline:
+[CICLO  33] [PC= 72] [ESPECULATIVO] Estado del Pipeline:
   Fetch:        Procesando: nop (1 ciclos restantes)
   Decode:       Procesando: jal x0, bucle (1 ciclos restantes)
   RegFile:      Procesando: beq x1, x2, fin_bucle (1 ciclos restantes)
@@ -352,7 +356,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 [CICLO 33] [COMPLETADA] nop
 
-[CICLO  34] [PC= 76] Estado del Pipeline:
+[CICLO  34] [PC= 76] [ESPECULATIVO] Estado del Pipeline:
   Fetch:        Procesando: nop (1 ciclos restantes)
   Decode:       Procesando: nop (1 ciclos restantes)
   RegFile:      Procesando: jal x0, bucle (1 ciclos restantes)
@@ -361,7 +365,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 [CICLO 34] [COMPLETADA] nop
 
-[CICLO  35] [PC= 80] Estado del Pipeline:
+[CICLO  35] [PC= 80] [ESPECULATIVO] Estado del Pipeline:
   Fetch:        Procesando: nop (1 ciclos restantes)
   Decode:       Procesando: nop (1 ciclos restantes)
   RegFile:      Procesando: nop (1 ciclos restantes)
@@ -369,7 +373,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
   Store:        Procesando: beq x1, x2, fin_bucle (1 ciclos restantes)
 
 [CICLO 35] [COMPLETADA] beq x1, x2, fin_bucle
-[STORE] Branch NO tomado
+[STORE] Branch PREDICCIÓN CORRECTA: PC=60, target=64
 
 [CICLO  36] [PC= 84] Estado del Pipeline:
   Fetch:        Procesando: addi x4, x0, 15 (1 ciclos restantes)
@@ -380,7 +384,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 [CICLO 36] [COMPLETADA] jal x0, bucle
 [STORE] JAL: PC = 64 -> 24
-[STORE] Pipeline flushed (Fetch/Decode/RegFile/Execute)
+[STORE] Pipeline flushed (JAL)
 
 [CICLO  37] [PC= 28] Estado del Pipeline:
   Fetch:        Procesando: addi x1, x1, 1 (1 ciclos restantes)
@@ -478,8 +482,10 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
   Store:        Procesando: nop (1 ciclos restantes)
 
 [CICLO 47] [COMPLETADA] nop
+[DECODE] Branch detectado: beq x1, x2, fin_bucle (PC=60)
+[DECODE] PREDICCIÓN: NO TOMADO (continuar secuencial)
 
-[CICLO  48] [PC= 72] Estado del Pipeline:
+[CICLO  48] [PC= 72] [ESPECULATIVO] Estado del Pipeline:
   Fetch:        Procesando: nop (1 ciclos restantes)
   Decode:       Procesando: jal x0, bucle (1 ciclos restantes)
   RegFile:      Procesando: beq x1, x2, fin_bucle (1 ciclos restantes)
@@ -488,7 +494,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 [CICLO 48] [COMPLETADA] nop
 
-[CICLO  49] [PC= 76] Estado del Pipeline:
+[CICLO  49] [PC= 76] [ESPECULATIVO] Estado del Pipeline:
   Fetch:        Procesando: nop (1 ciclos restantes)
   Decode:       Procesando: nop (1 ciclos restantes)
   RegFile:      Procesando: jal x0, bucle (1 ciclos restantes)
@@ -497,7 +503,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 [CICLO 49] [COMPLETADA] nop
 
-[CICLO  50] [PC= 80] Estado del Pipeline:
+[CICLO  50] [PC= 80] [ESPECULATIVO] Estado del Pipeline:
   Fetch:        Procesando: nop (1 ciclos restantes)
   Decode:       Procesando: nop (1 ciclos restantes)
   RegFile:      Procesando: nop (1 ciclos restantes)
@@ -505,7 +511,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
   Store:        Procesando: beq x1, x2, fin_bucle (1 ciclos restantes)
 
 [CICLO 50] [COMPLETADA] beq x1, x2, fin_bucle
-[STORE] Branch NO tomado
+[STORE] Branch PREDICCIÓN CORRECTA: PC=60, target=64
 
 [CICLO  51] [PC= 84] Estado del Pipeline:
   Fetch:        Procesando: addi x4, x0, 15 (1 ciclos restantes)
@@ -516,7 +522,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 [CICLO 51] [COMPLETADA] jal x0, bucle
 [STORE] JAL: PC = 64 -> 24
-[STORE] Pipeline flushed (Fetch/Decode/RegFile/Execute)
+[STORE] Pipeline flushed (JAL)
 
 [CICLO  52] [PC= 28] Estado del Pipeline:
   Fetch:        Procesando: addi x1, x1, 1 (1 ciclos restantes)
@@ -614,8 +620,10 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
   Store:        Procesando: nop (1 ciclos restantes)
 
 [CICLO 62] [COMPLETADA] nop
+[DECODE] Branch detectado: beq x1, x2, fin_bucle (PC=60)
+[DECODE] PREDICCIÓN: NO TOMADO (continuar secuencial)
 
-[CICLO  63] [PC= 72] Estado del Pipeline:
+[CICLO  63] [PC= 72] [ESPECULATIVO] Estado del Pipeline:
   Fetch:        Procesando: nop (1 ciclos restantes)
   Decode:       Procesando: jal x0, bucle (1 ciclos restantes)
   RegFile:      Procesando: beq x1, x2, fin_bucle (1 ciclos restantes)
@@ -624,7 +632,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 [CICLO 63] [COMPLETADA] nop
 
-[CICLO  64] [PC= 76] Estado del Pipeline:
+[CICLO  64] [PC= 76] [ESPECULATIVO] Estado del Pipeline:
   Fetch:        Procesando: nop (1 ciclos restantes)
   Decode:       Procesando: nop (1 ciclos restantes)
   RegFile:      Procesando: jal x0, bucle (1 ciclos restantes)
@@ -633,7 +641,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 [CICLO 64] [COMPLETADA] nop
 
-[CICLO  65] [PC= 80] Estado del Pipeline:
+[CICLO  65] [PC= 80] [ESPECULATIVO] Estado del Pipeline:
   Fetch:        Procesando: nop (1 ciclos restantes)
   Decode:       Procesando: nop (1 ciclos restantes)
   RegFile:      Procesando: nop (1 ciclos restantes)
@@ -641,7 +649,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
   Store:        Procesando: beq x1, x2, fin_bucle (1 ciclos restantes)
 
 [CICLO 65] [COMPLETADA] beq x1, x2, fin_bucle
-[STORE] Branch NO tomado
+[STORE] Branch PREDICCIÓN CORRECTA: PC=60, target=64
 
 [CICLO  66] [PC= 84] Estado del Pipeline:
   Fetch:        Procesando: addi x4, x0, 15 (1 ciclos restantes)
@@ -652,7 +660,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 [CICLO 66] [COMPLETADA] jal x0, bucle
 [STORE] JAL: PC = 64 -> 24
-[STORE] Pipeline flushed (Fetch/Decode/RegFile/Execute)
+[STORE] Pipeline flushed (JAL)
 
 [CICLO  67] [PC= 28] Estado del Pipeline:
   Fetch:        Procesando: addi x1, x1, 1 (1 ciclos restantes)
@@ -750,8 +758,10 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
   Store:        Procesando: nop (1 ciclos restantes)
 
 [CICLO 77] [COMPLETADA] nop
+[DECODE] Branch detectado: beq x1, x2, fin_bucle (PC=60)
+[DECODE] PREDICCIÓN: NO TOMADO (continuar secuencial)
 
-[CICLO  78] [PC= 72] Estado del Pipeline:
+[CICLO  78] [PC= 72] [ESPECULATIVO] Estado del Pipeline:
   Fetch:        Procesando: nop (1 ciclos restantes)
   Decode:       Procesando: jal x0, bucle (1 ciclos restantes)
   RegFile:      Procesando: beq x1, x2, fin_bucle (1 ciclos restantes)
@@ -760,7 +770,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 [CICLO 78] [COMPLETADA] nop
 
-[CICLO  79] [PC= 76] Estado del Pipeline:
+[CICLO  79] [PC= 76] [ESPECULATIVO] Estado del Pipeline:
   Fetch:        Procesando: nop (1 ciclos restantes)
   Decode:       Procesando: nop (1 ciclos restantes)
   RegFile:      Procesando: jal x0, bucle (1 ciclos restantes)
@@ -769,7 +779,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 [CICLO 79] [COMPLETADA] nop
 
-[CICLO  80] [PC= 80] Estado del Pipeline:
+[CICLO  80] [PC= 80] [ESPECULATIVO] Estado del Pipeline:
   Fetch:        Procesando: nop (1 ciclos restantes)
   Decode:       Procesando: nop (1 ciclos restantes)
   RegFile:      Procesando: nop (1 ciclos restantes)
@@ -777,8 +787,8 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
   Store:        Procesando: beq x1, x2, fin_bucle (1 ciclos restantes)
 
 [CICLO 80] [COMPLETADA] beq x1, x2, fin_bucle
-[STORE] Branch TOMADO: PC = 80 -> 68
-[STORE] Pipeline flushed (Fetch/Decode/RegFile/Execute)
+[STORE] Branch MISPREDICTION: predicho=64, real=68
+[STORE] FLUSH pipeline y corregir PC: 80 -> 68
 
 [CICLO  81] [PC= 72] Estado del Pipeline:
   Fetch:        Procesando: nop (1 ciclos restantes)
@@ -857,8 +867,10 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
   Store:        Procesando: nop (1 ciclos restantes)
 
 [CICLO 89] [COMPLETADA] nop
+[DECODE] Branch detectado: beq x3, x4, correcto (PC=96)
+[DECODE] PREDICCIÓN: NO TOMADO (continuar secuencial)
 
-[CICLO  90] [PC=108] Estado del Pipeline:
+[CICLO  90] [PC=108] [ESPECULATIVO] Estado del Pipeline:
   Fetch:        Procesando: jal x0, fin (1 ciclos restantes)
   Decode:       Procesando: addi x5, x0, 99 (1 ciclos restantes)
   RegFile:      Procesando: beq x3, x4, correcto (1 ciclos restantes)
@@ -867,7 +879,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 [CICLO 90] [COMPLETADA] nop
 
-[CICLO  91] [PC=112] Estado del Pipeline:
+[CICLO  91] [PC=112] [ESPECULATIVO] Estado del Pipeline:
   Fetch:        Procesando: addi x5, x0, 100 (1 ciclos restantes)
   Decode:       Procesando: jal x0, fin (1 ciclos restantes)
   RegFile:      Procesando: addi x5, x0, 99 (1 ciclos restantes)
@@ -876,7 +888,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 [CICLO 91] [COMPLETADA] nop
 
-[CICLO  92] [PC=116] Estado del Pipeline:
+[CICLO  92] [PC=116] [ESPECULATIVO] Estado del Pipeline:
   Fetch:        Procesando: nop (1 ciclos restantes)
   Decode:       Procesando: addi x5, x0, 100 (1 ciclos restantes)
   RegFile:      Procesando: jal x0, fin (1 ciclos restantes)
@@ -884,8 +896,8 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
   Store:        Procesando: beq x3, x4, correcto (1 ciclos restantes)
 
 [CICLO 92] [COMPLETADA] beq x3, x4, correcto
-[STORE] Branch TOMADO: PC = 116 -> 108
-[STORE] Pipeline flushed (Fetch/Decode/RegFile/Execute)
+[STORE] Branch MISPREDICTION: predicho=100, real=108
+[STORE] FLUSH pipeline y corregir PC: 116 -> 108
 
 [CICLO  93] [PC=112] Estado del Pipeline:
   Fetch:        Procesando: addi x5, x0, 100 (1 ciclos restantes)
@@ -1021,6 +1033,13 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 ================================================================================
 [SIMULACIÓN COMPLETADA] Total de ciclos: 108
+[ESTADÍSTICAS DE PREDICCIÓN]
+  Total branches: 6
+  Predicciones: 6
+  Correctas: 4
+  Incorrectas: 2
+  Precisión: 66.67%
+  Total flushes: 2
 ================================================================================
 
-Estado de memoria escrito en memoria_salida.txt
+Estado de memoria escrito en memoria_salida_prediccion.txt
