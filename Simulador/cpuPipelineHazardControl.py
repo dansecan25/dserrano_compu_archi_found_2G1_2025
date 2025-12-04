@@ -3,6 +3,7 @@ from componentes import Memoria
 from control import UnidadControl
 import os
 from pathlib import Path
+pathGen=((os.getcwd()).replace('\\','/'))+"/"
 
 class CPUPipelineHazardControl:
     def __init__(self):
@@ -25,7 +26,7 @@ class CPUPipelineHazardControl:
         self.ciclo_actual:int = 0  # Contador de ciclos de reloj
         
         # Log
-        self.log_file = open("log_hazard_control.txt", "w", encoding="utf-8")
+        self.log_file = open(pathGen+"log_hazard_control.txt", "w", encoding="utf-8")
         self.log_file.write("=== LOG DE EJECUCIÓN DEL CPU PIPELINE ===\n")
         self.log_file.write("Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1\n")
         self.log_file.write("=" * 80 + "\n\n")
@@ -395,7 +396,7 @@ class CPUPipelineHazardControl:
 
     def guardar_memoria_en_archivo(self, ruta):
         """Guarda el contenido de la memoria de datos en un archivo."""
-        with open(ruta, "w", encoding="utf-8") as f:
+        with open(pathGen+ruta, "w", encoding="utf-8") as f:
             for i, valor in enumerate(self.mem_data.data):
                 f.write(f"[{i:03d}] -> {valor}\n")
         self.log(f"Estado de memoria escrito en {ruta}")

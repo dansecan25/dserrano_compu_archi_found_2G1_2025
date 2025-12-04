@@ -4,6 +4,7 @@ from control import UnidadControl
 import os
 from pathlib import Path
 from cpuPipelineConPredicciondeSaltos import BranchPredictor
+pathGen=((os.getcwd()).replace('\\','/'))+"/"
 
 class CPUPipelinePrediccionSaltosHazardControl:
     def __init__(self, predictor_strategy='always_taken'):
@@ -39,7 +40,7 @@ class CPUPipelinePrediccionSaltosHazardControl:
         self.branch_count = 0
         
         # Log
-        self.log_file = open("log_prediccion_hazard_control.txt", "w", encoding="utf-8")
+        self.log_file = open(pathGen+"log_prediccion_hazard_control.txt", "w", encoding="utf-8")
         self.log_file.write("=== LOG DE EJECUCIÓN DEL CPU PIPELINE CON PREDICCIÓN DE SALTOS ===\n")
         self.log_file.write(f"Estrategia de predicción: {predictor_strategy}\n")
         self.log_file.write("=" * 80 + "\n\n")
@@ -483,7 +484,7 @@ class CPUPipelinePrediccionSaltosHazardControl:
 
     def guardar_memoria_en_archivo(self, ruta):
         """Guarda el contenido de la memoria de datos en un archivo."""
-        with open(ruta, "w", encoding="utf-8") as f:
+        with open(pathGen+ruta, "w", encoding="utf-8") as f:
             for i, valor in enumerate(self.mem_data.data):
                 f.write(f"[{i:03d}] -> {valor}\n")
         self.log(f"Estado de memoria escrito en {ruta}")
