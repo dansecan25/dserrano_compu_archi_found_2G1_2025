@@ -1,0 +1,91 @@
+=== LOG DE EJECUCIÓN DEL CPU PIPELINE CON PREDICCIÓN DE SALTOS ===
+Estrategia de predicción: always_taken
+================================================================================
+
+3 instrucciones cargadas desde lista `riscv_code`
+  [000] a
+  [001] a
+  [002] a
+
+=== INICIANDO SIMULACIÓN DEL PIPELINE CON PREDICCIÓN DE SALTOS ===
+
+
+[CICLO   0] [PC=  0] Estado del Pipeline:
+  Fetch:        Libre
+  Decode:       Libre
+  RegFile:      Libre
+  Execute:      Libre
+  Store:        Libre
+
+
+[CICLO   1] [PC=  4] Estado del Pipeline:
+  Fetch:        Procesando: a (1 ciclos restantes)
+  Decode:       Libre
+  RegFile:      Libre
+  Execute:      Libre
+  Store:        Libre
+
+
+[CICLO   2] [PC=  8] Estado del Pipeline:
+  Fetch:        Procesando: a (1 ciclos restantes)
+  Decode:       Procesando: a (1 ciclos restantes)
+  RegFile:      Libre
+  Execute:      Libre
+  Store:        Libre
+
+
+[CICLO   3] [PC= 12] Estado del Pipeline:
+  Fetch:        Procesando: a (1 ciclos restantes)
+  Decode:       Procesando: a (1 ciclos restantes)
+  RegFile:      Procesando: a (1 ciclos restantes)
+  Execute:      Libre
+  Store:        Libre
+
+
+[CICLO   4] [PC= 12] Estado del Pipeline:
+  Fetch:        Libre
+  Decode:       Procesando: a (1 ciclos restantes)
+  RegFile:      Procesando: a (1 ciclos restantes)
+  Execute:      Procesando: a (1 ciclos restantes)
+  Store:        Libre
+
+
+[CICLO   5] [PC= 12] Estado del Pipeline:
+  Fetch:        Libre
+  Decode:       Libre
+  RegFile:      Procesando: a (1 ciclos restantes)
+  Execute:      Procesando: a (1 ciclos restantes)
+  Store:        Procesando: a (1 ciclos restantes)
+
+[CICLO 5] [COMPLETADA] a
+
+[CICLO   6] [PC= 12] Estado del Pipeline:
+  Fetch:        Libre
+  Decode:       Libre
+  RegFile:      Libre
+  Execute:      Procesando: a (1 ciclos restantes)
+  Store:        Procesando: a (1 ciclos restantes)
+
+[CICLO 6] [COMPLETADA] a
+
+[CICLO   7] [PC= 12] Estado del Pipeline:
+  Fetch:        Libre
+  Decode:       Libre
+  RegFile:      Libre
+  Execute:      Libre
+  Store:        Procesando: a (1 ciclos restantes)
+
+[CICLO 7] [COMPLETADA] a
+
+================================================================================
+[SIMULACIÓN COMPLETADA] Total de ciclos: 8
+[ESTADÍSTICAS DE PREDICCIÓN]
+  Total branches: 0
+  Predicciones: 0
+  Correctas: 0
+  Incorrectas: 0
+  Precisión: 0.00%
+  Total flushes: 0
+================================================================================
+
+Estado de memoria escrito en memoria_salida_prediccion.txt

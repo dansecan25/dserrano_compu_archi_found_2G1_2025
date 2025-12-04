@@ -1,0 +1,64 @@
+=== LOG DE EJECUCIÓN DEL CPU PIPELINE ===
+Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
+================================================================================
+
+1 instrucciones cargadas desde lista `riscv_code`
+  [000] W	\CZXCZZ\Z
+
+=== INICIANDO SIMULACIÓN DEL PIPELINE CON CONTROL DE HAZARDS ===
+
+
+[CICLO   0] [PC=  0] Estado del Pipeline:
+  Fetch:        Libre
+  Decode:       Libre
+  RegFile:      Libre
+  Execute:      Libre
+  Store:        Libre
+
+
+[CICLO   1] [PC=  4] Estado del Pipeline:
+  Fetch:        Procesando: W	\CZXCZZ\Z (1 ciclos restantes)
+  Decode:       Libre
+  RegFile:      Libre
+  Execute:      Libre
+  Store:        Libre
+
+
+[CICLO   2] [PC=  4] Estado del Pipeline:
+  Fetch:        Libre
+  Decode:       Procesando: W	\CZXCZZ\Z (1 ciclos restantes)
+  RegFile:      Libre
+  Execute:      Libre
+  Store:        Libre
+
+
+[CICLO   3] [PC=  4] Estado del Pipeline:
+  Fetch:        Libre
+  Decode:       Libre
+  RegFile:      Procesando: W	\CZXCZZ\Z (1 ciclos restantes)
+  Execute:      Libre
+  Store:        Libre
+
+
+[CICLO   4] [PC=  4] Estado del Pipeline:
+  Fetch:        Libre
+  Decode:       Libre
+  RegFile:      Libre
+  Execute:      Procesando: W	\CZXCZZ\Z (1 ciclos restantes)
+  Store:        Libre
+
+
+[CICLO   5] [PC=  4] Estado del Pipeline:
+  Fetch:        Libre
+  Decode:       Libre
+  RegFile:      Libre
+  Execute:      Libre
+  Store:        Procesando: W	\CZXCZZ\Z (1 ciclos restantes)
+
+[CICLO 5] [COMPLETADA] W	\CZXCZZ\Z
+
+================================================================================
+[SIMULACIÓN COMPLETADA] Total de ciclos: 6
+================================================================================
+
+Estado de memoria escrito en memoria_salida_hazard_control.txt
