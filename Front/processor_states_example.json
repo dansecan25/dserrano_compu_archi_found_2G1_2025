@@ -1,0 +1,40 @@
+{
+  "cycles": [
+    {
+      "cycle": 0,
+      "description": "Initial state - PC at 0",
+      "components": [],
+      "wires": []
+    },
+    {
+      "cycle": 1,
+      "description": "Fetch: addi x1, x0, 100",
+      "components": ["PC", "Inst_Mem", "IF/ID"],
+      "wires": ["PC_to_IMem", "IMem_to_IFID"]
+    },
+    {
+      "cycle": 2,
+      "description": "Fetch: nop | Decode: addi x1, x0, 100",
+      "components": ["PC", "Inst_Mem", "IF/ID", "Control", "RegFile", "SignExt", "ID/EX"],
+      "wires": ["PC_to_IMem", "IMem_to_IFID", "IFID_to_Control", "IFID_to_RegFile", "RegFile_to_IDEX"]
+    },
+    {
+      "cycle": 3,
+      "description": "Full pipeline - 3 instructions",
+      "components": ["PC", "Inst_Mem", "IF/ID", "Control", "RegFile", "SignExt", "ID/EX", "ALU", "Mux_ALU_A", "Mux_ALU_B", "EX/MEM"],
+      "wires": ["PC_to_IMem", "IMem_to_IFID", "IFID_to_Control", "IFID_to_RegFile", "RegFile_to_IDEX", "IDEX_to_ALU", "MuxA_to_ALU", "MuxB_to_ALU", "ALU_to_EXMEM"]
+    },
+    {
+      "cycle": 4,
+      "description": "Full pipeline with memory stage",
+      "components": ["PC", "Inst_Mem", "IF/ID", "Control", "RegFile", "SignExt", "ID/EX", "ALU", "Mux_ALU_A", "Mux_ALU_B", "EX/MEM", "MEM/WB"],
+      "wires": ["PC_to_IMem", "IMem_to_IFID", "IFID_to_Control", "IFID_to_RegFile", "RegFile_to_IDEX", "IDEX_to_ALU", "MuxA_to_ALU", "MuxB_to_ALU", "ALU_to_EXMEM"]
+    },
+    {
+      "cycle": 5,
+      "description": "Full pipeline with write back",
+      "components": ["PC", "Inst_Mem", "IF/ID", "Control", "RegFile", "SignExt", "ID/EX", "ALU", "Mux_ALU_A", "Mux_ALU_B", "EX/MEM", "Data_Mem", "MEM/WB", "Mux_WB"],
+      "wires": ["PC_to_IMem", "IMem_to_IFID", "IFID_to_Control", "IFID_to_RegFile", "RegFile_to_IDEX", "SignExt_to_IDEX", "IDEX_to_ALU", "MuxA_to_ALU", "MuxB_to_ALU", "ALU_to_EXMEM", "MEMWB_to_Mux", "WB_to_RegFile"]
+    }
+  ]
+}

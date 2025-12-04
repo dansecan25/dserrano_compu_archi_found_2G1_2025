@@ -1,6 +1,10 @@
 import tkinter as tk
-from Simulador.cpu import CPU
+from tkinter import messagebox
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from Simulador.cpuPipelineSinHazards import CPUpipelineNoHazard
+from processor_view import ProcessorView
 
 back = "#1A1A1A"
 
@@ -65,13 +69,15 @@ class MainMenu:
         self.edit_button.grid(column=0, row=0)
 
         # Processor
-
-        self.processor_tab = tk.Frame(self.master, bg="blue", width=645, height=525)
+        self.processor_tab = tk.Frame(self.master, bg="#1A1A1A", width=1280, height=900)
         self.processor_tab.grid_propagate(False)
 
+        # Path to log file
+        self.log_path = os.path.join(os.path.dirname(__file__), "..", "Simulador", "log.txt")
 
-        self.label = tk.Label(self.processor_tab, bg="red")
-        self.label.grid(column=0, row=0, rowspan=3)
+        # Create processor view widget
+        self.processor_view = ProcessorView(self.processor_tab, self.log_path)
+        self.processor_view.pack(fill='both', expand=True)
 
     def get_txt(self):
         self.list.clear()
@@ -86,9 +92,17 @@ class MainMenu:
         self.filtered_list = [item for item in self.filtered_list if item.strip()]
 
         if len(self.filtered_list) != 0:
-            new_cpu = CPU
             new_cpu_pipeline = CPUpipelineNoHazard()
-            new_cpu_pipeline.ejecutar(self.filtered_list)
+            new_cpu_pipeline.cargarCodigo(self.filtered_list)   
+            new_cpu_pipeline.ejecutar()
+
+            # After execution, reload the log in processor view
+            if self.processor_view:
+                success = self.processor_view.load_log()
+                if success:
+                    messagebox.showinfo("Success", "Simulation completed! Switch to Processor tab to view pipeline execution.")
+                else:
+                    messagebox.showerror("Error", "Failed to load simulation log.")
 
 
     def editor_window(self):
@@ -111,6 +125,10 @@ class MainMenu:
         self.master.focus_set()
         self.processor_tab.grid(column=1, row=0, sticky="nsew", rowspan=30)
         self.processor_tab.grid_propagate(False)
+
+        # Try to load log if it exists
+        if self.processor_view and os.path.exists(self.log_path):
+            self.processor_view.load_log()
 
 
 
