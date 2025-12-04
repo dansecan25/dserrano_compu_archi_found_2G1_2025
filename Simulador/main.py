@@ -6,7 +6,7 @@ from cpuPipelineConPredicciondeSaltos import CPUpipelineConPrediccionSaltos
 # 1-> no hazard codigo  
 # 2-> hazard control necesitado
 # 3-> prediccion de saltos  
-codigo_pruebas:int = 3
+codigo_pruebas:int = 4
 riscv_code=[]
 if(codigo_pruebas==0):
     riscv_code = [
@@ -212,12 +212,109 @@ elif codigo_pruebas==3:
         "#   x6  = 75 (15 * 5)",
         "#   x7  = 77 (marca de fin)",
     ]
+elif codigo_pruebas==4:
+    # ============================================================
+    # PRUEBA: Predicción de saltos con bucle
+    # ============================================================
+    riscv_code = [
+"# ============================================================",
+        "# PRUEBA 4: Múltiples Store Words (sw)",
+        "# Objetivo: Escribir varios valores en memoria",
+        "# ============================================================",
+        "",
+        "# --- Inicializar valores en registros ---",
+        "addi x1, x0, 10       # x1 = 10",
+        "addi x2, x0, 20       # x2 = 20",
+        "addi x3, x0, 30       # x3 = 30",
+        "addi x4, x0, 40       # x4 = 40",
+        "addi x5, x0, 50       # x5 = 50",
+        "nop",
+        "nop",
+        "nop",
+        "",
+        "# --- Dirección base ---",
+        "addi x10, x0, 0       # x10 = 0 (dirección base)",
+        "nop",
+        "nop",
+        "nop",
+        "",
+        "# --- Store múltiples valores ---",
+        "sw x1, 0(x10)         # Mem[0] = 10",
+        "nop",
+        "nop",
+        "nop",
+        "nop",
+        "sw x2, 4(x10)         # Mem[4] = 20",
+        "nop",
+        "nop",
+        "nop",
+        "nop",
+        "sw x3, 8(x10)         # Mem[8] = 30",
+        "nop",
+        "nop",
+        "nop",
+        "nop",
+        "sw x4, 12(x10)        # Mem[12] = 40",
+        "nop",
+        "nop",
+        "nop",
+        "nop",
+        "sw x5, 16(x10)        # Mem[16] = 50",
+        "nop",
+        "nop",
+        "nop",
+        "nop",
+        "",
+        "# --- Calcular suma y guardar ---",
+        "add x6, x1, x2        # x6 = 10 + 20 = 30",
+        "nop",
+        "nop",
+        "nop",
+        "nop",
+        "sw x6, 20(x10)        # Mem[20] = 30",
+        "nop",
+        "nop",
+        "nop",
+        "nop",
+        "",
+        "add x7, x3, x4        # x7 = 30 + 40 = 70",
+        "nop",
+        "nop",
+        "nop",
+        "nop",
+        "sw x7, 24(x10)        # Mem[24] = 70",
+        "nop",
+        "nop",
+        "nop",
+        "nop",
+        "",
+        "add x8, x5, x6        # x8 = 50 + 30 = 80",
+        "nop",
+        "nop",
+        "nop",
+        "nop",
+        "sw x8, 28(x10)        # Mem[28] = 80",
+        "nop",
+        "nop",
+        "nop",
+        "nop",
+        "",
+        "# --- Store valor final ---",
+        "addi x9, x0, 99       # x9 = 99 (marca de finalización)",
+        "nop",
+        "nop",
+        "nop",
+        "nop",
+        "sw x9, 32(x10)        # Mem[32] = 99",
+        "nop",
+        "",
+    ]
 
 # 0-> no hazard control
 # 1-> hazard control 
 # 2-> prediccion de saltos (always_taken)
 # 3-> prediccion de saltos (always_not_taken)
-cpu_testear:int=3
+cpu_testear:int=1
 if(cpu_testear==0):
     cpuPipeline=CPUpipelineNoHazard()
 elif cpu_testear==1:

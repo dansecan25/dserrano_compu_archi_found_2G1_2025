@@ -78,7 +78,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
   [072] sw x9, 32(x10)
   [073] nop
 
-=== INICIANDO SIMULACIÓN DEL PIPELINE ===
+=== INICIANDO SIMULACIÓN DEL PIPELINE CON CONTROL DE HAZARDS ===
 
 
 [CICLO   0] [PC=  0] Estado del Pipeline:
@@ -810,4 +810,4 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 [SIMULACIÓN COMPLETADA] Total de ciclos: 79
 ================================================================================
 
-Estado de memoria escrito en memoria_salida.txt
+Estado de memoria escrito en memoria_salida_hazard_control.txt
