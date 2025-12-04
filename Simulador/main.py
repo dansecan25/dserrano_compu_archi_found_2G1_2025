@@ -7,7 +7,7 @@ from cpuPipelinePrediccionSaltosHazardControl import CPUPipelinePrediccionSaltos
 # 1-> no hazard codigo  
 # 2-> hazard control necesitado
 # 3-> prediccion de saltos  
-codigo_pruebas:int = 4
+codigo_pruebas:int = 5
 riscv_code=[]
 if(codigo_pruebas==0):
     riscv_code = [
@@ -310,12 +310,44 @@ elif codigo_pruebas==4:
         "nop",
         "",
     ]
+elif codigo_pruebas==5:
+    riscv_code = [
+        "# TEST SIMPLE: branches, add, addi, lw, sw",
+        "",
+        "# Inicializar",
+        "addi x1, x0, 10",
+        "addi x2, x0, 20",
+        "add x3, x1, x2",
+        "",
+        "# Store",
+        "addi x10, x0, 0",
+        "sw x1, 0(x10)",
+        "sw x2, 4(x10)",
+        "sw x3, 8(x10)",
+        "",
+        "# Load",
+        "lw x4, 0(x10)",
+        "",
+        "# Branch NO tomado",
+        "beq x1, x2, skip1",
+        "addi x5, x0, 50",
+        "skip1:",
+        "",
+        "# Branch SI tomado",
+        "beq x1, x1, skip2",
+        "addi x6, x0, 99",
+        "skip2:",
+        "addi x7, x0, 77",
+        "nop"
+    ]
+
+
 
 # 0-> no hazard control
 # 1-> hazard control 
 # 2-> prediccion de saltos (always_taken)
 # 3-> prediccion de saltos (always_not_taken)
-cpu_testear:int=4
+cpu_testear:int=1
 if(cpu_testear==0):
     cpuPipeline=CPUpipelineNoHazard()
 elif cpu_testear==1:
