@@ -73,7 +73,7 @@ class MainMenu:
         self.processor_tab.grid_propagate(False)
 
         # Path to log file
-        self.log_path = os.path.join(os.path.dirname(__file__), "..", "Simulador", "log.txt")
+        self.log_path = os.path.join(os.path.dirname(__file__), "..", "log.txt")
 
         # Create processor view widget
         self.processor_view = ProcessorView(self.processor_tab, self.log_path)
