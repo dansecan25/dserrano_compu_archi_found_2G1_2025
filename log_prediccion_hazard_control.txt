@@ -1,5 +1,5 @@
-=== LOG DE EJECUCIÓN DEL CPU PIPELINE ===
-Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
+=== LOG DE EJECUCIÓN DEL CPU PIPELINE CON PREDICCIÓN DE SALTOS ===
+Estrategia de predicción: always_taken
 ================================================================================
 
 74 instrucciones cargadas desde lista `riscv_code`
@@ -78,7 +78,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
   [072] sw x9, 32(x10)
   [073] nop
 
-=== INICIANDO SIMULACIÓN DEL PIPELINE ===
+=== INICIANDO SIMULACIÓN DEL PIPELINE CON PREDICCIÓN DE SALTOS ===
 
 
 [CICLO   0] [PC=  0] Estado del Pipeline:
@@ -808,6 +808,13 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 ================================================================================
 [SIMULACIÓN COMPLETADA] Total de ciclos: 79
+[ESTADÍSTICAS DE PREDICCIÓN]
+  Total branches: 0
+  Predicciones: 0
+  Correctas: 0
+  Incorrectas: 0
+  Precisión: 0.00%
+  Total flushes: 0
 ================================================================================
 
-Estado de memoria escrito en memoria_salida.txt
+Estado de memoria escrito en memoria_salida_prediccion_hazard_control.txt

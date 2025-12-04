@@ -2,6 +2,7 @@ from cpu import CPU
 from cpuPipelineSinHazards import CPUpipelineNoHazard
 from cpuPipelineHazardControl import CPUPipelineHazardControl
 from cpuPipelineConPredicciondeSaltos import CPUpipelineConPrediccionSaltos
+from cpuPipelinePrediccionSaltosHazardControl import CPUPipelinePrediccionSaltosHazardControl
 # 0-> original ripes
 # 1-> no hazard codigo  
 # 2-> hazard control necesitado
@@ -314,7 +315,7 @@ elif codigo_pruebas==4:
 # 1-> hazard control 
 # 2-> prediccion de saltos (always_taken)
 # 3-> prediccion de saltos (always_not_taken)
-cpu_testear:int=1
+cpu_testear:int=4
 if(cpu_testear==0):
     cpuPipeline=CPUpipelineNoHazard()
 elif cpu_testear==1:
@@ -323,7 +324,10 @@ elif cpu_testear==2:
     cpuPipeline=CPUpipelineConPrediccionSaltos(predictor_strategy='always_taken')
 elif cpu_testear==3:
     cpuPipeline=CPUpipelineConPrediccionSaltos(predictor_strategy='always_not_taken')
-
+elif cpu_testear==4:
+    cpuPipeline=CPUPipelinePrediccionSaltosHazardControl(predictor_strategy='always_taken')
+elif cpu_testear==5:
+    cpuPipeline=CPUPipelinePrediccionSaltosHazardControl(predictor_strategy='always_not_taken')
 cpuPipeline.cargarCodigo(riscv_code)
 cpuPipeline.ejecutar()
 
