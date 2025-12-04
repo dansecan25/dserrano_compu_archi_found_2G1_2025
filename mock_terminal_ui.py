@@ -1,13 +1,8 @@
-
-from cpuPipelinePrediccionSaltosHazardControl import CPUPipelinePrediccionSaltosHazardControl
-from cpuPipelineSinHazards import CPUpipelineNoHazard
-from cpuPipelineHazardControl import CPUPipelineHazardControl
-from cpuPipelineConPredicciondeSaltos import CPUpipelineConPrediccionSaltos
-# 0-> original ripes
-# 1-> no hazard codigo  
-# 2-> hazard control necesitado
-# 3-> prediccion de saltos  
-codigo_pruebas:int = 0
+from Simulador.cpuPipelinePrediccionSaltosHazardControl import *
+from Simulador.cpuPipelineSinHazards import *
+from Simulador.cpuPipelineHazardControl import *
+from Simulador.cpuPipelineConPredicciondeSaltos import *
+codigo_pruebas:int = 4
 riscv_code=[]
 if(codigo_pruebas==0):
     riscv_code = [
@@ -307,158 +302,108 @@ elif codigo_pruebas==4:
         "nop",
         "",]
 
-# 0-> no hazard control
-# 1-> hazard control 
-# 2-> prediccion de saltos (always_taken)
-# 3-> prediccion de saltos (always_not_taken)
-# 4-> prediccion de saltos y hazard control (always_taken)
-# 5-> prediccion de saltos y hazard control (always_not_taken)
-cpu_testear:int=0
-if(cpu_testear==0):
-    cpuPipeline=CPUpipelineNoHazard()
-elif cpu_testear==1:
-    cpuPipeline=CPUPipelineHazardControl()
-elif cpu_testear==2:
-    cpuPipeline=CPUpipelineConPrediccionSaltos(predictor_strategy='always_taken')
-elif cpu_testear==3:
-    cpuPipeline=CPUpipelineConPrediccionSaltos(predictor_strategy='always_not_taken')
-elif cpu_testear==4:
-    cpuPipeline=CPUPipelinePrediccionSaltosHazardControl(predictor_strategy='always_taken')
-elif cpu_testear==5:
-    cpuPipeline=CPUPipelinePrediccionSaltosHazardControl(predictor_strategy='always_not_taken')
-cpuPipeline.cargarCodigo(riscv_code)
-cpuPipeline.ejecutar()
 
-# cpu.ejecutar(riscv_code)
-# cpu.ejecutar_todo()
+def mock_menu():
+    print("Ejecutando mock interface")
+    print("Seleccione 2 procesadores para correr simultaneamente")
 
-print("\n" + "=" * 80)
-print("ANÁLISIS DE RESULTADOS - PREDICCIÓN DE SALTOS")
-print("=" * 80)
+    option = None
 
-if codigo_pruebas == 3:
-    print(f"\n[REGISTROS FINALES]")
-    print(f"  x1  = {cpuPipeline.regs[1]:3d} (esperado: 5 - contador)")
-    print(f"  x2  = {cpuPipeline.regs[2]:3d} (esperado: 5 - límite)")
-    print(f"  x3  = {cpuPipeline.regs[3]:3d} (esperado: 15 - suma)")
-    print(f"  x4  = {cpuPipeline.regs[4]:3d} (esperado: 15 - valor esperado)")
-    print(f"  x5  = {cpuPipeline.regs[5]:3d} (esperado: 100 - correcto)")
-    print(f"  x6  = {cpuPipeline.regs[6]:3d} (esperado: 75 - multiplicación)")
-    print(f"  x7  = {cpuPipeline.regs[7]:3d} (esperado: 77 - marca fin)")
-    
-    print(f"\n[ESTADÍSTICAS DE PREDICCIÓN]")
-    print(f"  Estrategia: {cpuPipeline.branch_predictor.strategy}")
-    print(f"  Total ciclos: {cpuPipeline.ciclo_actual}")
-    print(f"  Branches ejecutados: {cpuPipeline.branch_count}")
-    print(f"  Predicciones: {cpuPipeline.branch_predictor.predictions}")
-    print(f"  Correctas: {cpuPipeline.branch_predictor.correct_predictions}")
-    print(f"  Incorrectas: {cpuPipeline.branch_predictor.mispredictions}")
-    print(f"  Precisión: {cpuPipeline.branch_predictor.get_accuracy():.1f}%")
-    print(f"  Flushes: {cpuPipeline.total_flushes}")
-    
-    print("\n" + "=" * 80)
-    print("VERIFICACIÓN DETALLADA")
-    print("=" * 80)
-    
-    errores = 0
-    tests = [
-        (1, 5, "x1 - contador"),
-        (2, 5, "x2 - límite"),
-        (3, 15, "x3 - suma (1+2+3+4+5)"),
-        (4, 15, "x4 - esperado"),
-        (5, 100, "x5 - marca correcto"),
-        (6, 75, "x6 = x3 * x2"),
-        (7, 77, "x7 - marca fin"),
-    ]
-    
-    for reg, esperado, descripcion in tests:
-        valor_real = cpuPipeline.regs[reg]
-        if valor_real == esperado:
-            print(f"[OK] {descripcion}: {valor_real}")
-        else:
-            print(f"[ERROR] {descripcion}: esperado={esperado}, obtenido={valor_real}")
-            errores += 1
-    
-    print("\n" + "=" * 80)
-    print("RESUMEN DE VALIDACIÓN")
-    print("=" * 80)
-    
-    if errores == 0:
-        print("[OK] TODOS LOS TESTS PASARON")
-        print("\nFuncionalidad validada:")
-        print("  - Predicción de saltos funciona correctamente")
-        print("  - Ejecución especulativa implementada")
-        print("  - Detección y corrección de mispredictions")
-        print("  - CPU completa ejecuta código con branches")
-    else:
-        print(f"[ERROR] FALLO {errores} TEST(S)")
-        print("    Revisar implementación de predicción")
-    
-    print("=" * 80)
+    while option != 7:
+        simuladores_seleccionados: list[int] = []
 
-else:
-    print(f"\n[REGISTROS PRINCIPALES]")
-    print(f"  x1  = {cpuPipeline.regs[1]:3d} (esperado: 64)")
-    print(f"  x2  = {cpuPipeline.regs[2]:3d} (esperado: 18 - return address)")
-    print(f"  x5  = {cpuPipeline.regs[5]:3d} (esperado: 32)")
-    print(f"  x6  = {cpuPipeline.regs[6]:3d} (esperado: 30 - return address)")
-    print(f"  x8  = {cpuPipeline.regs[8]:3d} (esperado: 58)")
+        while len(simuladores_seleccionados) < 2:
+            sim_seleccionado = input(
+                "Seleccione un simulador:\n"
+                "1. Pipeline sin hazard control\n"
+                "2. Pipeline con hazard control\n"
+                "3. Pipeline con prediccion de saltos always taken\n"
+                "4. Pipeline con prediccion de saltos always not taken\n"
+                "5. Pipeline con prediccion de saltos always taken y hazard control\n"
+                "6. Pipeline con prediccion de saltos always not taken y hazard control\n"
+                "7. Salir\n"
+                "Seleccione: "
+            )
 
-    print(f"\n[FUNCION 1]")
-    print(f"  x10 = {cpuPipeline.regs[10]:3d} (esperado: 10)")
-    print(f"  x11 = {cpuPipeline.regs[11]:3d} (esperado: 20)")
-    print(f"  x12 = {cpuPipeline.regs[12]:3d} (esperado: 30 = x10 + x11)")
+            try:
+                sim_seleccionado_int = int(sim_seleccionado)
 
-    print(f"\n[FUNCION 2]")
-    print(f"  x15 = {cpuPipeline.regs[15]:3d} (esperado: 77)")
-    print(f"  x16 = {cpuPipeline.regs[16]:3d} (esperado: 33)")
+                # Opción de salir
+                if sim_seleccionado_int == 7:
+                    option = 7
+                    print("Adios")
+                    return
 
-    print("\n" + "=" * 80)
-    print("VERIFICACION DETALLADA")
-    print("=" * 80)
+                # Validar rango
+                if sim_seleccionado_int < 1 or sim_seleccionado_int > 7:
+                    print("Opción fuera de rango")
+                    continue
 
-    errores = 0
+                # Evitar duplicados
+                if sim_seleccionado_int in simuladores_seleccionados:
+                    print("Ya seleccionó ese simulador, escoja otro.")
+                    continue
 
-    tests = [
-        (1, 100, "x1 (main)"),
-        (2, 24, "x2 (return address 1)"),
-        (5, 50, "x5 (despues de funcion1)"),
-        (6, 48, "x6 (return address 2)"),
-        (8, 88, "x8 (codigo final)"),
-        (10, 10, "x10 (funcion1)"),
-        (11, 20, "x11 (funcion1)"),
-        (12, 30, "x12 (suma en funcion1)"),
-        (15, 77, "x15 (funcion2)"),
-        (16, 33, "x16 (funcion2)"),
-    ]
+                # Agregar simulador seleccionado
+                simuladores_seleccionados.append(sim_seleccionado_int)
+                print(f"Simulador {sim_seleccionado_int} agregado.")
 
-    for reg, esperado, descripcion in tests:
-        valor_real = cpuPipeline.regs[reg]
-        if valor_real == esperado:
-            print(f"[OK] {descripcion}: {valor_real} == {esperado}")
-        else:
-            print(f"[ERROR] {descripcion}: {valor_real} != {esperado}")
-            errores += 1
+            except ValueError:
+                print("Ingrese un número válido.")
 
-    print("\n" + "=" * 80)
-    print("RESUMEN DE VALIDACION")
-    print("=" * 80)
+        clases_simulador:list[object]=[]
+        for numero_simulador in simuladores_seleccionados:
+            if(numero_simulador==1):
+                clases_simulador.append(CPUpipelineNoHazard())
+            elif(numero_simulador==2):
+                clases_simulador.append(CPUPipelineHazardControl())
+            elif(numero_simulador==3):
+                clases_simulador.append(CPUpipelineConPrediccionSaltos(predictor_strategy='always_taken'))
+            elif(numero_simulador==4):
+                clases_simulador.append(CPUpipelineConPrediccionSaltos(predictor_strategy='always_not_taken'))
+            elif(numero_simulador==5):
+                clases_simulador.append(CPUPipelinePrediccionSaltosHazardControl(predictor_strategy='always_taken'))
+            elif(numero_simulador==6):
+                clases_simulador.append(CPUPipelinePrediccionSaltosHazardControl(predictor_strategy='always_not_taken'))
+            
+        print(f"Simuladores seleccionados: {clases_simulador}")
+        print("Ejecutando simulación...\n")
 
-    if errores == 0:
-        print("[OK] TODOS LOS TESTS PASARON")
-        print("\nFuncionalidad JAL validada:")
-        print("  - Salto incondicional a labels")
-        print("  - Guardado de direccion de retorno en rd")
-        print("  - Pipeline flush en cada jal")
-        print("  - Llamadas a funciones y retornos")
-        print("  - JAL anidado (funciones que llaman a otras)")
-    else:
-        print(f"[ERROR] FALLO {errores} TEST(S)")
-        print("    Revisar implementacion de JAL")
+        # Selección del método de ejecución
+        metodoSeleccionado = None
 
-    print("=" * 80)
+        while metodoSeleccionado is None:
+            metodo_selecc = input(
+                "¿Cómo quiere correrlo?\n"
+                "1. Paso a paso\n"
+                "2. A una velocidad determinada\n"
+                "3. Todo de un solo\n"
+                "Seleccione: "
+            )
+
+            try:
+                metodoSeleccionado_int = int(metodo_selecc)
+
+                # Validar rango
+                if metodoSeleccionado_int < 1 or metodoSeleccionado_int > 3:
+                    print("Opción fuera de rango (solo 1, 2 o 3).")
+                    continue
+
+                # Si está dentro del rango, seleccionar
+                metodoSeleccionado = metodoSeleccionado_int
+                print(f"Método seleccionado: {metodoSeleccionado}")
+
+            except ValueError:
+                print("Ingrese un número válido.")
+
+        # Aquí ya tienes un método válido y confirmado
+        print(f"Ejecutando simulación con método {metodoSeleccionado}...\n")
+        clases_simulador[0].cargarCodigo(riscv_code)
+        clases_simulador[0].ejecutar()
+        clases_simulador[1].cargarCodigo(riscv_code)
+        clases_simulador[1].ejecutar()
 
 
-
-
-
+mock_menu()
+CPUPipelineHazardControl.cargarCodigo(riscv_code)
+CPUPipelineHazardControl.ejecutar()
