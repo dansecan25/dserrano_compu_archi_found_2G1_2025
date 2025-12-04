@@ -50,88 +50,179 @@ class CPUPipelinePrediccionSaltosHazardControl:
 
     def controlar_hazards(self, codigo: list[str]) -> list[str]:
         """
-        Nuevo detector:
-        - detecta RAW con distancia 1 y 2
-        - para load-use: inserta 1 NOP antes del consumidor
-        - para RAW normal: inserta 1 NOP antes del consumidor (ajustable)
+        Inserta NOPs en la lista de instrucciones para garantizar que
+        cualquier consumidor de un registro 'rd' no llegue a su etapa
+        RegisterFile antes de que el productor haya completado su Store.
+
+        Se calcula la distancia mínima en instrucciones usando la latencia
+        de Execute de la instrucción productora:
+            required_gap = exec_latency + 2
+        Si la distancia actual entre producer (i) y consumer (j) es menor,
+        se insertan NOPs antes del consumer.
+
+        Devuelve la nueva lista con NOPs insertados.
         """
-        def parse(inst):
-            inst = inst.split("#")[0].strip()
+        # import local para obtener latencias de instrucción
+        from pipelineEtapas.latencias_config import get_instruction_latency
+
+        def parse_regs(inst: str):
+            """
+            Extrae (opcode, rd, rs1, rs2) en forma normalizada:
+            rd/rs1/rs2 devueltos como strings 'xN' o None.
+            """
             if not inst:
                 return None, None, None, None
-            parts = inst.replace(",", " ").replace("(", " ").replace(")", " ").split()
+            text = inst.split("#")[0].strip()
+            if not text:
+                return None, None, None, None
+            parts = text.replace(",", " ").replace("(", " ").replace(")", " ").split()
+            if not parts:
+                return None, None, None, None
             op = parts[0]
             rd = rs1 = rs2 = None
-            if op in ["add","sub","and","or","xor","sll","srl","sra","mul","div","rem"]:
+
+            # R-type: add rd, rs1, rs2
+            if op in ["add", "sub", "and", "or", "xor", "sll", "srl", "sra", "mul", "div", "rem", "slt"]:
                 if len(parts) >= 4:
                     rd, rs1, rs2 = parts[1], parts[2], parts[3]
-            elif op in ["addi","andi","ori","xori","slti","sltiu","li"]:
+
+            # I-type arith: addi rd, rs1, imm
+            elif op in ["addi", "andi", "ori", "xori", "slti", "sltiu"]:
                 if len(parts) >= 3:
                     rd, rs1 = parts[1], parts[2]
+
+            # loads: lw rd, offset(rs1)
             elif op == "lw":
                 if len(parts) >= 3:
-                    rd = parts[1]; rs1 = parts[3] if len(parts) > 3 else None
+                    rd = parts[1]
+                    # parts may be like ['lw','x4','0','x10'] after splitting parens
+                    if len(parts) >= 4:
+                        rs1 = parts[3]
+                    else:
+                        rs1 = parts[2]
+
+            # stores: sw rs2, offset(rs1)
             elif op == "sw":
                 if len(parts) >= 3:
-                    rs2 = parts[1]; rs1 = parts[3] if len(parts) > 3 else None
-            elif op in ["beq","bne","blt","bge","bltu","bgeu"]:
+                    rs2 = parts[1]
+                    # base register after split parens
+                    if len(parts) >= 4:
+                        rs1 = parts[3]
+                    else:
+                        rs1 = parts[2]
+
+            # branches use rs1, rs2
+            elif op in ["beq", "bne", "blt", "bge", "bltu", "bgeu"]:
                 if len(parts) >= 3:
                     rs1, rs2 = parts[1], parts[2]
+
+            # jal rd, label
             elif op == "jal":
                 if len(parts) >= 2:
                     rd = parts[1]
+
+            # jalr rd, rs1, imm  (approx)
             elif op == "jalr":
                 if len(parts) >= 3:
                     rd, rs1 = parts[1], parts[2]
-            return rd, rs1, rs2, op
 
-        out = []
+            return op, rd, rs1, rs2
+
+        nuevo: list[str] = []
         i = 0
-        while i < len(codigo):
+        n = len(codigo)
+
+        while i < n:
             inst = codigo[i]
-            rd_i, rs1_i, rs2_i, op_i = parse(inst)
-            # lookahead j = i+1 and i+2
-            # We'll decide whether to insert NOPs BEFORE the consumer.
-            inserted = False
+            # siempre copiamos la instrucción actual (producer) al output;
+            # si detectamos que hay que insertar nops antes de un consumidor
+            # más adelante, lo haremos en el flujo de lookahead.
+            nuevo.append(inst)
 
-            for j in (1, 2):  # check next 1 and 2 instructions
-                if i + j >= len(codigo):
-                    break
-                rd_j, rs1_j, rs2_j, op_j = parse(codigo[i + j])
-                if rd_i and rd_i != "x0":
-                    # consumer uses rd_i?
-                    if rs1_j == rd_i or rs2_j == rd_i:
-                        # if producer is load, ensure one NOP before consumer
-                        if op_i == "lw":
-                            # insert one nop BEFORE consumer (i+j)
-                            # append current inst, then inject nops to push consumer
-                            out.append(inst)
-                            # add (j-1) original instructions between producer and consumer
-                            for k in range(1, j):
-                                out.append(codigo[i+k])
-                            out.append("nop")
-                            # now advance i to skip what we already copied (producer + intermediate)
-                            i += j
-                            inserted = True
-                            break
-                        else:
-                            # general RAW: insert one nop before consumer
-                            out.append(inst)
-                            for k in range(1, j):
-                                out.append(codigo[i+k])
-                            out.append("nop")
-                            i += j
-                            inserted = True
-                            break
-            if not inserted:
-                out.append(inst)
+            op_i, rd_i, rs1_i, rs2_i = parse_regs(inst)
+            # Si la instrucción no escribe un registro útil (rd None o x0), saltar lookahead.
+            if rd_i is None or rd_i == "x0":
                 i += 1
+                continue
 
-        # optional debug print
-        if len(out) > len(codigo):
-            print("Se agregaron nops para manejar hazards. Nuevo tamaño:", len(out))
-        return out
+            # obtenemos la latencia de execute de la instrucción productora
+            # si get_instruction_latency falla con el opcode, asumimos lat 1
+            try:
+                exec_lat = get_instruction_latency(op_i)
+                if exec_lat is None:
+                    exec_lat = 1
+            except Exception:
+                exec_lat = 1
 
+            # required minimum gap in number of instructions between producer(i) and consumer(j)
+            required_gap = exec_lat + 2  # derivado: j - i >= L + 2
+
+            # mirar hacia adelante cada instrucción j y si encuentra un consumidor,
+            # insertar la cantidad necesaria de NOPs *antes* del consumidor
+            # (es decir, en la salida 'nuevo' entre lo que ya copié y la copia del consumidor).
+            # Nota: si insertamos, tenemos que "copiar" las instrucciones intermedias ya leídas.
+            look = 1
+            inserted_total = 0
+            while i + look < n:
+                j = i + look
+                inst_j = codigo[j]
+                op_j, rd_j, rs1_j, rs2_j = parse_regs(inst_j)
+
+                # si la instrucción j usa rd_i como rs1 o rs2 -> hazard detected
+                uses_rd = (rs1_j == rd_i) or (rs2_j == rd_i)
+
+                if uses_rd:
+                    current_gap = look  # j - i
+                    if current_gap < required_gap:
+                        needed = required_gap - current_gap
+                        # Insert 'needed' nops BEFORE the consumer (inst_j)
+                        # But en 'nuevo' ya tenemos las producer y las instrucciones previas (hasta i),
+                        # necesitamos migrar las instrucciones entre i+1 .. j-1 también a 'nuevo' before inserting nop,
+                        # because we only appended inst (producer) so far. So append the intermediate ones now.
+                        for k in range(1, look):
+                            nuevo.append(codigo[i + k])
+                            inserted_total += 0  # intermediate appended, not nops
+                        # ahora insertamos los NOPs
+                        for _ in range(needed):
+                            nuevo.append("nop")
+                        # ahora el consumidor (inst_j) será procesado en la próxima iteración del loop principal
+                        # pero hemos avanzado la copia: necesitamos mover i to j (we'll skip the copied inters next)
+                        i = j  # colocamos i en la posición del consumidor (estará copiada en próxima iteración)
+                        break
+                    else:
+                        # no se necesita nop para este consumidor (la distancia ya es suficiente)
+                        # no hacemos nada y continuamos buscando; pero si hay un consumidor, no necesitamos
+                        # mirar consumidores más lejanos para el mismo rd (podrían existir, pero ya están a mayor gap)
+                        break
+                else:
+                    # seguir mirando adelante
+                    look += 1
+                    continue
+
+            else:
+                # no se encontró consumidor en el futuro que use rd_i
+                i += 1
+                continue
+
+            # si llegamos aquí, significa que hicimos un 'break' por haber insertado y pusimos i=j (consumer)
+            # NO incrementamos i de otra forma (la próxima iteración copiará el consumer)
+            # si el while look encontró uses_rd pero no necesitó insertar nop, no se modificó i y rompió -> incrementamos
+            if i < n and codigo[i] == inst:
+                # caso donde no avanzamos i arriba
+                i += 1
+            # si i fue puesto en j por el break, no incrementamos aquí (la siguiente iteración manejará consumer)
+
+        # nota: el algoritmo anterior puede haber duplicado intermedios si no se cuida;
+        # para mayor seguridad, normalizamos la salida: eliminamos secuencias superfluas de NOPs repetidos
+        # pero evitando tocar la semántica. Esto es opcional; aquí lo dejamos tal cual.
+
+        # debug simple
+        if len(nuevo) > len(codigo):
+            print(f"[HAZARD_CTRL] Se agregaron {len(nuevo)-len(codigo)} NOP(s). Nueva longitud: {len(nuevo)}")
+        else:
+            print("[HAZARD_CTRL] No se agregaron NOPs.")
+
+        return nuevo
 
 
 
