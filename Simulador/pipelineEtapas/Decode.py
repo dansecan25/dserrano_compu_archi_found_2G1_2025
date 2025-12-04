@@ -17,9 +17,7 @@ class Decode():
             self.params = params
             self.ciclos_restantes = self.latencia
             self.ocupada = True
-            if instruccion:
-                print(f"[DECODE] Decodificando: {instruccion}, latencia={self.latencia} ciclos")
-
+            
     def tick(self):
         """Reduce un ciclo. Retorna True si la etapa completó su instrucción."""
         if self.ocupada and self.ciclos_restantes > 0:

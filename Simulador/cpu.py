@@ -22,7 +22,6 @@ class CPU:
         self.log_file.write("=== LOG DE EJECUCIÓN DEL CPU ===\n")
 
     def log(self, mensaje):
-        print(mensaje)
         self.log_file.write(mensaje + "\n")
 
     def ejecutar(self, codigo):

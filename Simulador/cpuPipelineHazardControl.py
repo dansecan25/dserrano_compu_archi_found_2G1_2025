@@ -5,14 +5,6 @@ import os
 from pathlib import Path
 
 class CPUPipelineHazardControl:
-    """
-    Pipeline de 5 etapas con:
-     - Filtrado de directivas (.data, .text, .word, .string, .globl, labels)
-     - Mapeo de labels a PC en bytes (offset = index*4)
-     - Detección RAW simple y load-use
-     - Inserción de NOPs (stall) como manejo de hazards (no forwarding)
-    """
-
     def __init__(self):
         # Componentes del Pipeline
         self.mem_inst = Memoria(64)
@@ -24,234 +16,173 @@ class CPUPipelineHazardControl:
         self.etapa_registerFile = RegisterFile(regs=self.regs)
         self.etapa_execute = Execute(mem_data=self.mem_data)
         self.etapa_store = EtapaStore()
-        self.PC = 0
+        self.PC:int = 0
         self.labels = {}
         self.data_pointer = 0
-        self.codigo = []
-        self.instrucciones_cola = []  # Cola de instrucciones a cargar en Fetch (solo instrucciones)
-        self.indice_instruccion = 0  # Índice (en bytes) de siguiente instrucción a cargar
-        self.ciclo_actual = 0  # Contador de ciclos de reloj
-
+        self.codigo:list[str] = []
+        self.instrucciones_cola:list[str] = []  # Cola de instrucciones a cargar en Fetch
+        self.indice_instruccion:int = 0  # Índice de siguiente instrucción a cargar
+        self.ciclo_actual:int = 0  # Contador de ciclos de reloj
+        
         # Log
         self.log_file = open("log_hazard_control.txt", "w", encoding="utf-8")
-        self.log_file.write("=== LOG DE EJECUCIÓN DEL CPU PIPELINE (Hazard Control) ===\n")
+        self.log_file.write("=== LOG DE EJECUCIÓN DEL CPU PIPELINE ===\n")
         self.log_file.write("Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1\n")
         self.log_file.write("=" * 80 + "\n\n")
 
     def log(self, mensaje):
-        print(mensaje)
-        try:
-            self.log_file.write(mensaje + "\n")
-        except Exception:
-            pass
+        self.log_file.write(mensaje + "\n")
+    
+    def controlar_hazards(self, codigo: list[str]) -> list[str]:
+        nuevo = []
+        
+        # Función auxiliar para extraer rd, rs1, rs2
+        def extraer_registros(inst):
+            # Eliminar comentarios, espacios dobles
+            inst = inst.split("#")[0].strip()
+            if not inst:
+                return None, None, None
+            
+            partes = inst.replace(",", " ").split()
+            op = partes[0]
 
-    # ---------------------------
-    # PARSER / CARGA DE CÓDIGO
-    # ---------------------------
+            rd = rs1 = rs2 = None
 
-    def _es_directiva(self, linea):
-        """Devuelve True si la línea es una directiva que NO debe entrar al pipeline."""
-        l = linea.strip()
-        if not l:
-            return True
-        if l.startswith("#"):
-            return True
-        if l.startswith("."):
-            return True
-        # definiciones de datos: .word, .string, etiquetas con colon no son instrucciones
-        # También ignoramos pseudo-instrucciones que no queremos simular aquí
-        return False
+            # Formatos más comunes
+            if op in ["add", "sub", "and", "or", "xor", "sll", "srl", "sra",
+                    "mul", "div", "rem"]:
+                # R-type: rd rs1 rs2
+                if len(partes) >= 4:
+                    rd, rs1, rs2 = partes[1], partes[2], partes[3]
 
-    def cargarCodigo(self, codigo):
-        """
-        Filtra directivas y labels. Llena:
-        - self.instrucciones_cola: lista de instrucciones (strings) que entran al pipeline
-        - self.labels: mapea label -> PC_en_bytes (index*4 en la lista instrucciones_cola)
-        Nota: si un label está asociado a una directiva (ej: "count: .word 0"), NO se mapeará como label de código.
-        """
-        self.codigo = [line.rstrip() for line in codigo]  # copia cruda
-        self.instrucciones_cola = []
-        self.labels = {}
+            elif op in ["addi", "andi", "ori", "xori", "slti", "sltiu"]:
+                # I-type aritmetico: rd rs1 imm
+                if len(partes) >= 3:
+                    rd, rs1 = partes[1], partes[2]
 
-        # Primera pasada: tokenizar líneas manteniendo si son label/directiva/instr
-        temp = []  # lista de tuples (texto, tipo) donde tipo ∈ {"instr","label","directiva","label_data"}
-        for line in codigo:
-            # eliminar comentarios
-            linea = line.split("#")[0].strip()
-            if linea == "":
+            elif op in ["lw"]:
+                # I-type load: rd offset(rs1)
+                if len(partes) >= 3:
+                    rd = partes[1]
+                    # offset(rs1)
+                    base = partes[2]
+                    if "(" in base:
+                        rs1 = base.split("(")[1][:-1]
+
+            elif op in ["sw"]:
+                # S-type store: rs2 offset(rs1)
+                if len(partes) >= 3:
+                    rs2 = partes[1]
+                    base = partes[2]
+                    if "(" in base:
+                        rs1 = base.split("(")[1][:-1]
+
+            elif op in ["jal"]:
+                # jal rd, label  → escribe rd, no usa rs1/rs2
+                if len(partes) >= 2:
+                    rd = partes[1]
+
+            elif op in ["jalr"]:
+                # jalr rd, rs1, imm
+                if len(partes) >= 4:
+                    rd, rs1 = partes[1], partes[2]
+
+            elif op in ["beq", "bne", "blt", "bge", "bltu", "bgeu"]:
+                # Branch: usa rs1, rs2
+                if len(partes) >= 4:
+                    rs1, rs2 = partes[1], partes[2]
+
+            return rd, rs1, rs2
+
+        # Revisión de hazards RAW
+        for i in range(len(codigo)):
+            inst = codigo[i]
+            nuevo.append(inst)
+
+            # No se puede comparar con una instrucción inexistente
+            if i == len(codigo) - 1:
                 continue
 
-            # Directivas solas (ej: .data, .text)
-            if linea.startswith("."):
-                temp.append((linea, "directiva"))
+            rd, _, _ = extraer_registros(inst)
+            if rd is None or rd == "x0":
                 continue
 
-            # Detectar label con posible resto
-            if ":" in linea:
-                parts = linea.split(":", 1)
-                label = parts[0].strip()
-                resto = parts[1].strip()
-                # Si el resto está vacío -> etiqueta sola
-                if resto == "":
-                    temp.append((f"{label}:", "label"))
-                    continue
-                # Si el resto comienza con '.' -> label ligado a data (ej: count: .word 0)
-                if resto.startswith("."):
-                    temp.append((f"{label}:", "label_data"))
-                    temp.append((resto, "directiva"))
-                    continue
-                # Si el resto es una instrucción válida en la misma línea
-                temp.append((f"{label}:", "label"))
-                temp.append((resto, "instr"))
-                continue
+            # Revisar siguiente instrucción
+            inst_sig = codigo[i + 1]
+            _, rs1_sig, rs2_sig = extraer_registros(inst_sig)
 
-            # Línea sin label ni directiva -> posible instrucción
-            # Si comienza con '.', considerarla directiva (seguro)
-            if linea.startswith("."):
-                temp.append((linea, "directiva"))
-            else:
-                temp.append((linea, "instr"))
+            hazard = False
 
-        # Segunda pasada: construir instrucciones reales y mapear labels de código
-        instr_index = 0
-        for entry, kind in temp:
-            if kind == "instr":
-                instr_text = entry.strip()
-                if instr_text == "":
-                    continue
-                self.instrucciones_cola.append(instr_text)
-                instr_index += 1
-            elif kind == "label":
-                label_name = entry.rstrip(":")
-                # Mapear label al PC (en bytes) de la próxima instrucción válida
-                self.labels[label_name] = instr_index * 4
-            elif kind == "label_data":
-                # label que referencia datos: NO lo mapear como label de código
-                # (si quieres guardar etiquetas de datos, podríamos almacenarlas aparte)
-                continue
-            else:
-                # directiva -> ignorar
-                continue
+            # Si el siguiente usa ese registro → HAZARD RAW
+            if rs1_sig == rd or rs2_sig == rd:
+                hazard = True
 
-        # Escribir en memoria de instrucciones (opcional)
+            # load-use hazard (lw -> next)
+            if inst.strip().startswith("lw"):
+                if rs1_sig == rd or rs2_sig == rd:
+                    hazard = True
+
+            # Si hay hazard, insertar NOP
+            if hazard:
+                nuevo.append("nop")
+        if len(nuevo)>len(codigo):
+            print(f"Se agregaron nops para manejar hazards, lista nueva:\n{nuevo}")
+        else:
+            print("No hubo inserción de nops")
+        return nuevo
+
+
+
+    """
+    Funcion: Limpia las lineas de codigo y carga el codigo en self.codigo Los labels los almacena con su ubicación PC
+    """
+    def cargarCodigo(self, codigo:list[str]):
+        # Filtrar comentarios y líneas vacías, detectar labels
+        self.codigo = []
+        self.labels = {} #{label:posicionPC}
+        for linea in codigo:
+            linea = linea.split("#")[0].strip()
+            if linea:
+                # Detectar labels (formato: "label:")
+                if ':' in linea and not '(' in linea:  # Evitar confusión con offset(reg)
+                    label_name = linea.split(':')[0].strip()
+                    self.labels[label_name] = len(self.codigo) * 4  # PC en múltiplos de 4
+                    # Si hay instrucción después del label en la misma línea
+                    resto = linea.split(':', 1)[1].strip()
+                    if resto:
+                        self.codigo.append(resto)
+                else:
+                    self.codigo.append(linea)
+
+        #Agarra self.codigo, antes de copiarlo, y lo revisa por hazards, si encuentra un hazard, agrega los nops despues de la instruccion con un potencial hazard
+        self.codigo=self.controlar_hazards(self.codigo)
+
+
+        self.instrucciones_cola = self.codigo.copy()
+        # Escribir también en la memoria de instrucciones para compatibilidad
+        # con el comportamiento anterior de `CPU.cargar_programa_desde_archivo`.
+        #almacena el codigo en ubicaciones especificas en la memoria de instrucciones, donde van cada 4 posiciones
         for i, instr in enumerate(self.instrucciones_cola):
             try:
                 self.mem_inst.escribir(i, instr)
             except Exception:
+                # ignorar errores de escritura fuera de rango
                 pass
+        # Registrar en el log cuántas instrucciones se cargaron y listarlas
 
-        # Resetear índice y log
-        self.indice_instruccion = 0
-        self.log(f"{len(self.instrucciones_cola)} instrucciones cargadas (directivas filtradas)")
-        for idx, ins in enumerate(self.instrucciones_cola):
-            self.log(f"  [{idx:03d}] {ins}")
-
-    # ---------------------------
-    # UTIL PARSING DE REGISTROS
-    # ---------------------------
-
-    def parse_regs(self, instr):
-        """
-        Extrae rd, rs1, rs2, y si la instrucción es load (lw) o store (sw).
-        Retorna: (rd, rs1, rs2, is_load, is_store)
-        Valores None si no aplican.
-        """
+        #carga las instrucciones en el log
         try:
-            s = instr.replace(",", " ").replace("(", " ").replace(")", " ")
-            parts = s.split()
-            op = parts[0]
-
-            rd = rs1 = rs2 = None
-            is_load = is_store = False
-
-            if op in ["add", "sub", "and", "or", "slt", "mul", "div", "rem"]:
-                rd = int(parts[1].replace("x", ""))
-                rs1 = int(parts[2].replace("x", ""))
-                rs2 = int(parts[3].replace("x", ""))
-                return rd, rs1, rs2, False, False
-
-            if op in ["addi", "andi", "ori", "slti", "li"]:
-                rd = int(parts[1].replace("x", ""))
-                rs1 = int(parts[2].replace("x", ""))
-                return rd, rs1, None, False, False
-
-            if op == "lw":
-                # lw rd, offset(rs1) -> after replace: ["lw","rd","offset","rs1"]
-                rd = int(parts[1].replace("x", ""))
-                rs1 = int(parts[3].replace("x", ""))
-                is_load = True
-                return rd, rs1, None, True, False
-
-            if op == "sw":
-                # sw rs2, offset(rs1)
-                rs2 = int(parts[1].replace("x", ""))
-                rs1 = int(parts[3].replace("x", ""))
-                is_store = True
-                return None, rs1, rs2, False, True
-
-            if op in ["beq", "bne", "blt", "bge"]:
-                rs1 = int(parts[1].replace("x", ""))
-                rs2 = int(parts[2].replace("x", ""))
-                return None, rs1, rs2, False, False
-
-            if op == "jal":
-                # jal rd, label_or_imm
-                rd = int(parts[1].replace("x", ""))
-                return rd, None, None, False, False
-
-            if op == "nop":
-                return None, None, None, False, False
-
-            # Por defecto, no detectable
-            return None, None, None, False, False
+            self.log(f"{len(self.instrucciones_cola)} instrucciones cargadas desde lista `riscv_code`")
+            for idx, ins in enumerate(self.instrucciones_cola):
+                self.log(f"  [{idx:03d}] {ins}")
         except Exception:
-            return None, None, None, False, False
+            # si el log no está disponible por alguna razón, no interrumpir
+            pass
 
-    # ---------------------------
-    # HAZARD DETECTION E INSERCIÓN NOP
-    # ---------------------------
-
-    def hazard_detected(self):
-        """
-        Detecta RAW entre Decode(operando) vs Execute/RegFile results.
-        También detecta load-use (cuando Execute es load y Decode necesita su rd).
-        Devuelve True si hay hazard que requiere insertar un NOP.
-        """
-        instr_decode = self.etapa_decode.getInstruccion()
-        if not instr_decode:
-            return False
-
-        # Obtener regs que necesita Decode (rs1, rs2)
-        _, rs1_d, rs2_d, _, _ = self.parse_regs(instr_decode)
-
-        # Revisar Execute (destino pendiente)
-        instr_exe = self.etapa_execute.getInstruccion()
-        if instr_exe:
-            rd_exe, _, _, is_load_exe, _ = self.parse_regs(instr_exe)
-            if rd_exe and rd_exe != 0:
-                if rs1_d == rd_exe or rs2_d == rd_exe:
-                    # Si EXE está ejecutando un LW -> load-use: se necesita NOP
-                    if is_load_exe:
-                        return True
-                    # Si EXE no es load pero el valor todavía no está disponible (sin forwarding) -> stall
-                    return True
-
-        # Revisar RegisterFile (instrucción que está en etapa RegFile y escribirá pronto)
-        instr_rf = self.etapa_registerFile.getInstruccion()
-        if instr_rf:
-            rd_rf, _, _, _, _ = self.parse_regs(instr_rf)
-            if rd_rf and rd_rf != 0:
-                if rs1_d == rd_rf or rs2_d == rd_rf:
-                    return True
-
-        return False
-
-    # ---------------------------
-    # ESTADO / TICK / EJECUCIÓN
-    # ---------------------------
 
     def mostrar_estado_pipeline(self):
-        estado = f"\n[CICLO {self.ciclo_actual:3d}] [PC_instr_index={self.indice_instruccion//4:3d}] Estado del Pipeline:\n"
+        """Imprime el estado actual de todas las etapas."""
+        estado = f"\n[CICLO {self.ciclo_actual:3d}] [PC={self.indice_instruccion:3d}] Estado del Pipeline:\n"
         estado += f"  Fetch:        {self.etapa_fetch.get_estado()}\n"
         estado += f"  Decode:       {self.etapa_decode.get_estado()}\n"
         estado += f"  RegFile:      {self.etapa_registerFile.get_estado()}\n"
@@ -262,36 +193,27 @@ class CPUPipelineHazardControl:
     def tick(self):
         """
         Simula un ciclo de reloj discreto del pipeline.
-        Orden:
-          - detectar hazards antes de fetch: si hay hazard en Decode, insertar NOP
-          - tick en todas las etapas
-          - mover instrucciones entre etapas (si etapa actual completó y la siguiente está libre)
-          - cargar siguiente instrucción en Fetch (si existe y Fetch está libre)
+        - Primero, las etapas reducen sus ciclos internos (tick)
+        - Luego, movemos instrucciones entre etapas si ambas condiciones se cumplen:
+          1. Etapa actual completó (ciclos_restantes == 0 después de tick)
+          2. Etapa siguiente está libre
         """
-
-        # 1) HAZARD DETECTION: si detectamos un hazard RAW, insertamos un NOP en Fetch (burbuja)
-        if self.hazard_detected():
-            self.log(f"[CICLO {self.ciclo_actual}] *** HAZARD DETECTADO → Insertando NOP (stall) ***")
-            # Insertar NOP en Fetch si está libre; si está ocupada, forzamos su instruccionEjecutando a "nop"
-            if self.etapa_fetch.esta_libre():
-                self.etapa_fetch.cargarInstruccion("nop", [])
-            else:
-                # Forzamos una NOP en fetch (si la etapa está ocupada, la transformamos en NOP)
-                self.etapa_fetch.instruccionEjecutando = "nop"
-                self.etapa_fetch.ocupada = True
-
-        # 2) Tick en todas las etapas (reduce ciclos_restantes)
+        # 1. Tick en todas las etapas (reduce ciclos restantes)
         self.etapa_fetch.tick()
         self.etapa_decode.tick()
         self.etapa_registerFile.tick()
         self.etapa_execute.tick()
         self.etapa_store.tick()
 
-        # 3) Movimiento entre etapas (Store -> Writeback effects; Execute -> Store; RegFile -> Execute; Decode -> RegFile; Fetch -> Decode)
-        # STORE -> writeback / efectos
+        # 2. Mover instrucciones entre etapas (de Store hacia Fetch en ese orden)
+        #    Esto simula que al final de cada ciclo, si una etapa termina, 
+        #    pasa su instrucción a la siguiente (si está libre)
+
+        # Store → Writeback (si completa, ejecutar efecto: mem/reg write)
         if self.etapa_store.getInstruccion() != "":
             instr_store = self.etapa_store.get_instruccion_actual()
             self.log(f"[CICLO {self.ciclo_actual}] [COMPLETADA] {instr_store}")
+            # Ejecutar efectos pasados en params (si existen)
             try:
                 params = getattr(self.etapa_store, 'params', []) or []
                 if params:
@@ -303,6 +225,7 @@ class CPUPipelineHazardControl:
                             self.log(f"[STORE] Registro x{rd} <- {val}")
                     elif accion == 'mem_write':
                         addr, val = params[1], params[2]
+                        # escribir en memoria de datos
                         try:
                             self.mem_data.escribir(addr, val)
                             self.log(f"[STORE] Mem[{addr}] <- {val}")
@@ -315,18 +238,23 @@ class CPUPipelineHazardControl:
                             self.regs[rd] = val
                             self.log(f"[STORE] Load: x{rd} <- Mem[{addr}] = {val}")
                     elif accion == 'branch_result':
+                        # Branch evaluation result
                         branch_taken, label_or_offset = params[1], params[2]
                         if branch_taken:
+                            # Resolver label o usar offset directo
                             if label_or_offset in self.labels:
                                 nuevo_pc = self.labels[label_or_offset]
                             else:
+                                # Asumir offset relativo (en bytes, múltiplo de 4)
                                 try:
                                     nuevo_pc = self.indice_instruccion + int(label_or_offset) * 4
                                 except:
                                     nuevo_pc = self.indice_instruccion
+                            
                             self.log(f"[STORE] Branch TOMADO: PC = {self.indice_instruccion} -> {nuevo_pc}")
                             self.indice_instruccion = nuevo_pc
-                            # flush pipeline (Fetch/Decode/RegFile/Execute)
+                            
+                            # Flush pipeline (limpiar Fetch, Decode, RegisterFile, Execute)
                             self.etapa_fetch.instruccionEjecutando = ""
                             self.etapa_fetch.ocupada = False
                             self.etapa_decode.instruccionEjecutando = ""
@@ -339,27 +267,38 @@ class CPUPipelineHazardControl:
                         else:
                             self.log(f"[STORE] Branch NO tomado")
                     elif accion == 'jump_result':
+                        # Jump (jal) - siempre se toma
                         rd, label = params[1], params[2]
+                        
+                        # Buscar el PC de la instrucción jal actual
+                        # La instrucción está en etapa_store, necesitamos encontrar su índice original
                         instr_actual = self.etapa_store.get_instruccion_actual()
                         pc_jal = -1
-                        for i, instr in enumerate(self.instrucciones_cola):
+                        for i, instr in enumerate(self.codigo):
                             if instr == instr_actual:
-                                pc_jal = i * 4
+                                pc_jal = i * 4  # PC en múltiplos de 4
                                 break
-                        if 0 < rd < len(self.regs) and pc_jal >= 0:
+                        
+                        # Guardar dirección de retorno (PC de jal + 4) en rd
+                        if 0 < rd < len(self.regs) and pc_jal >= 0:  # x0 no puede ser escrito
                             return_addr = pc_jal + 4
                             self.regs[rd] = return_addr
                             self.log(f"[STORE] JAL: x{rd} <- {return_addr} (return address)")
+                        
+                        # Resolver label y actualizar PC
                         if label in self.labels:
                             nuevo_pc = self.labels[label]
                         else:
+                            # Asumir offset relativo desde PC de jal (en bytes)
                             try:
                                 nuevo_pc = pc_jal + int(label) * 4
                             except:
                                 nuevo_pc = pc_jal + 4
+                        
                         self.log(f"[STORE] JAL: PC = {pc_jal} -> {nuevo_pc}")
                         self.indice_instruccion = nuevo_pc
-                        # flush pipeline
+                        
+                        # Flush pipeline (limpiar Fetch, Decode, RegisterFile, Execute)
                         self.etapa_fetch.instruccionEjecutando = ""
                         self.etapa_fetch.ocupada = False
                         self.etapa_decode.instruccionEjecutando = ""
@@ -371,63 +310,70 @@ class CPUPipelineHazardControl:
                         self.log(f"[STORE] Pipeline flushed (Fetch/Decode/RegFile/Execute)")
             except Exception:
                 pass
-
-            # limpiar Store
+            # Limpiar la etapa Store después de completar
             self.etapa_store.instruccionEjecutando = ""
             self.etapa_store.ocupada = False
 
-        # EXECUTE -> STORE
+        # Execute → Store (si Execute completa y Store está libre)
         if self.etapa_execute.getInstruccion() != "" and self.etapa_store.esta_libre():
             instr = self.etapa_execute.getInstruccion()
+            # Obtener params que Execute.py ya calculó
             params = getattr(self.etapa_execute, 'params', []) or []
+            
             self.etapa_store.cargarInstruccion(instr, params)
+            # Limpiar Execute
             self.etapa_execute.instruccionEjecutando = ""
             self.etapa_execute.ocupada = False
 
-        # REGFILE -> EXECUTE
+        # RegisterFile → Execute (si RegFile completa y Execute está libre)
         if self.etapa_registerFile.getInstruccion() != "" and self.etapa_execute.esta_libre():
             instr = self.etapa_registerFile.getInstruccion()
+            # Pasar los params (operandos leídos) que RegisterFile calculó
             params = getattr(self.etapa_registerFile, 'params', []) or []
             self.etapa_execute.cargarInstruccion(instr, params)
+            # Limpiar RegisterFile
             self.etapa_registerFile.instruccionEjecutando = ""
             self.etapa_registerFile.ocupada = False
 
-        # DECODE -> REGFILE
+        # Decode → RegisterFile (si Decode completa y RegFile está libre)
         if self.etapa_decode.getInstruccion() != "" and self.etapa_registerFile.esta_libre():
             instr = self.etapa_decode.getInstruccion()
             self.etapa_registerFile.cargarInstruccion(instr)
+            # Limpiar Decode
             self.etapa_decode.instruccionEjecutando = ""
             self.etapa_decode.ocupada = False
 
-        # FETCH -> DECODE
+        # Fetch → Decode (si Fetch completa y Decode está libre)
         if self.etapa_fetch.getInstruccion() != "" and self.etapa_decode.esta_libre():
             instr = self.etapa_fetch.getInstruccion()
             self.etapa_decode.cargarInstruccion(instr, [])
+            # Limpiar Fetch
             self.etapa_fetch.instruccionEjecutando = ""
             self.etapa_fetch.ocupada = False
 
-        # 4) CARGAR siguiente instrucción en Fetch si existe y Fetch está libre
+        # 3. Cargar siguiente instrucción en Fetch (si hay y Fetch está libre)
         if self.indice_instruccion < len(self.instrucciones_cola) * 4 and self.etapa_fetch.esta_libre():
             instr = self.instrucciones_cola[self.indice_instruccion // 4]
             self.etapa_fetch.cargarInstruccion(instr, [])
             self.indice_instruccion += 4
 
-        # fin de ciclo
         self.ciclo_actual += 1
 
     def ejecutar(self):
         """Ejecuta el programa completo en ciclos de reloj discretos."""
-        self.log("\n=== INICIANDO SIMULACIÓN DEL PIPELINE (HAZARD CONTROL) ===\n")
-
+        self.log("\n=== INICIANDO SIMULACIÓN DEL PIPELINE CON CONTROL DE HAZARDS ===\n")
+        
+        # Simulación de ciclos de reloj
         ciclos_max = 1000  # Prevención de bucle infinito
-
+        
+        #CICLO PRINCIPAL
         while self.ciclo_actual < ciclos_max:
             # Mostrar estado antes del tick
             self.log(self.mostrar_estado_pipeline())
-
+            
             # Ejecutar un ciclo
             self.tick()
-
+            
             # Condición de salida: no hay más instrucciones y pipeline está vacío
             if (self.indice_instruccion >= len(self.instrucciones_cola) * 4 and
                 self.etapa_fetch.get_instruccion_actual() == "" and
@@ -436,7 +382,7 @@ class CPUPipelineHazardControl:
                 self.etapa_execute.get_instruccion_actual() == "" and
                 self.etapa_store.get_instruccion_actual() == ""):
                 break
-
+        
         self.log("\n" + "=" * 80)
         self.log(f"[SIMULACIÓN COMPLETADA] Total de ciclos: {self.ciclo_actual}")
         self.log("=" * 80 + "\n")
@@ -445,10 +391,7 @@ class CPUPipelineHazardControl:
             self.guardar_memoria_en_archivo("memoria_salida_hazard_control.txt")
         except Exception:
             pass
-        try:
-            self.log_file.close()
-        except Exception:
-            pass
+        self.log_file.close()
 
     def guardar_memoria_en_archivo(self, ruta):
         """Guarda el contenido de la memoria de datos en un archivo."""

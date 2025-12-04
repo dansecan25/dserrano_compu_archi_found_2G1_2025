@@ -31,7 +31,6 @@ class CPUpipelineNoHazard:
         self.log_file.write("=" * 80 + "\n\n")
 
     def log(self, mensaje):
-        print(mensaje)
         self.log_file.write(mensaje + "\n")
 
     def cargarCodigo(self, codigo):
