@@ -1,6 +1,6 @@
-from pipelineEtapas import EtapaStore, Fetch, RegisterFile, Execute, Decode
-from componentes import Memoria
-from control import UnidadControl
+from Simulador.pipelineEtapas import EtapaStore, Fetch, RegisterFile, Execute, Decode
+from Simulador.componentes import Memoria
+from Simulador.control import UnidadControl
 import os
 from pathlib import Path
 
@@ -386,15 +386,19 @@ class CPUPipelineHazardControl:
         self.log("\n" + "=" * 80)
         self.log(f"[SIMULACIÓN COMPLETADA] Total de ciclos: {self.ciclo_actual}")
         self.log("=" * 80 + "\n")
+        self.guardar_memoria_en_archivo("memoria_salida_hazard_control.txt")
         # Guardar memoria de datos en archivo (mismo comportamiento que CPU)
         try:
-            self.guardar_memoria_en_archivo("./memoria_salida_hazard_control.txt")
+            self.guardar_memoria_en_archivo("memoria_salida_hazard_control.txt")
+            print("Todo se guardo bien")
         except Exception:
+            print("ERROR")
             pass
         self.log_file.close()
 
     def guardar_memoria_en_archivo(self, ruta):
         """Guarda el contenido de la memoria de datos en un archivo."""
+        print("Guardando: ",self.mem_data.data)
         with open(ruta, "w", encoding="utf-8") as f:
             for i, valor in enumerate(self.mem_data.data):
                 f.write(f"[{i:03d}] -> {valor}\n")

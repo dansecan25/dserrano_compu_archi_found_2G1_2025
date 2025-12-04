@@ -313,7 +313,7 @@ elif codigo_pruebas==4:
 # 3-> prediccion de saltos (always_not_taken)
 # 4-> prediccion de saltos y hazard control (always_taken)
 # 5-> prediccion de saltos y hazard control (always_not_taken)
-cpu_testear:int=0
+cpu_testear:int=1
 if(cpu_testear==0):
     cpuPipeline=CPUpipelineNoHazard()
 elif cpu_testear==1:

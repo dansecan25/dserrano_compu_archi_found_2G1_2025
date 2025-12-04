@@ -4,7 +4,9 @@ class Memoria:
 
     def escribir(self, direccion, valor):
         """Guarda un valor en una dirección de memoria."""
+        print("Escribiendo",direccion,valor)
         if 0 <= direccion < len(self.data):
+            print("Se escribe",direccion,valor)
             self.data[direccion] = valor
         else:
             raise IndexError("Dirección de memoria fuera de rango")

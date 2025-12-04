@@ -2,20 +2,81 @@
 Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 ================================================================================
 
-13 instrucciones cargadas desde lista `riscv_code`
-  [000] .data
-  [001] .word 0
-  [002] .word 500
-  [003] .string "Fin del programa\n"
-  [004] .text
-  [005] .globl _start
-  [006] addi x1, x0, 5
-  [007] addi x2, x0, 10
-  [008] add x3, x1, x2
-  [009] add x4, x3, x1
-  [010] add x5, x3, x2
-  [011] add x6, x4, x5
-  [012] nop
+74 instrucciones cargadas desde lista `riscv_code`
+  [000] addi x1, x0, 10
+  [001] addi x2, x0, 20
+  [002] addi x3, x0, 30
+  [003] addi x4, x0, 40
+  [004] addi x5, x0, 50
+  [005] nop
+  [006] nop
+  [007] nop
+  [008] addi x10, x0, 0
+  [009] nop
+  [010] nop
+  [011] nop
+  [012] sw x1, 0(x10)
+  [013] nop
+  [014] nop
+  [015] nop
+  [016] nop
+  [017] sw x2, 4(x10)
+  [018] nop
+  [019] nop
+  [020] nop
+  [021] nop
+  [022] sw x3, 8(x10)
+  [023] nop
+  [024] nop
+  [025] nop
+  [026] nop
+  [027] sw x4, 12(x10)
+  [028] nop
+  [029] nop
+  [030] nop
+  [031] nop
+  [032] sw x5, 16(x10)
+  [033] nop
+  [034] nop
+  [035] nop
+  [036] nop
+  [037] add x6, x1, x2
+  [038] nop
+  [039] nop
+  [040] nop
+  [041] nop
+  [042] sw x6, 20(x10)
+  [043] nop
+  [044] nop
+  [045] nop
+  [046] nop
+  [047] add x7, x3, x4
+  [048] nop
+  [049] nop
+  [050] nop
+  [051] nop
+  [052] sw x7, 24(x10)
+  [053] nop
+  [054] nop
+  [055] nop
+  [056] nop
+  [057] add x8, x5, x6
+  [058] nop
+  [059] nop
+  [060] nop
+  [061] nop
+  [062] sw x8, 28(x10)
+  [063] nop
+  [064] nop
+  [065] nop
+  [066] nop
+  [067] addi x9, x0, 99
+  [068] nop
+  [069] nop
+  [070] nop
+  [071] nop
+  [072] sw x9, 32(x10)
+  [073] nop
 
 === INICIANDO SIMULACIÓN DEL PIPELINE ===
 
@@ -29,7 +90,7 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 
 [CICLO   1] [PC=  4] Estado del Pipeline:
-  Fetch:        Procesando: .data (1 ciclos restantes)
+  Fetch:        Procesando: addi x1, x0, 10 (1 ciclos restantes)
   Decode:       Libre
   RegFile:      Libre
   Execute:      Libre
@@ -37,154 +98,716 @@ Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
 
 
 [CICLO   2] [PC=  8] Estado del Pipeline:
-  Fetch:        Procesando: .word 0 (1 ciclos restantes)
-  Decode:       Procesando: .data (1 ciclos restantes)
+  Fetch:        Procesando: addi x2, x0, 20 (1 ciclos restantes)
+  Decode:       Procesando: addi x1, x0, 10 (1 ciclos restantes)
   RegFile:      Libre
   Execute:      Libre
   Store:        Libre
 
 
 [CICLO   3] [PC= 12] Estado del Pipeline:
-  Fetch:        Procesando: .word 500 (1 ciclos restantes)
-  Decode:       Procesando: .word 0 (1 ciclos restantes)
-  RegFile:      Procesando: .data (1 ciclos restantes)
+  Fetch:        Procesando: addi x3, x0, 30 (1 ciclos restantes)
+  Decode:       Procesando: addi x2, x0, 20 (1 ciclos restantes)
+  RegFile:      Procesando: addi x1, x0, 10 (1 ciclos restantes)
   Execute:      Libre
   Store:        Libre
 
 
 [CICLO   4] [PC= 16] Estado del Pipeline:
-  Fetch:        Procesando: .string "Fin del programa\n" (1 ciclos restantes)
-  Decode:       Procesando: .word 500 (1 ciclos restantes)
-  RegFile:      Procesando: .word 0 (1 ciclos restantes)
-  Execute:      Procesando: .data (1 ciclos restantes)
+  Fetch:        Procesando: addi x4, x0, 40 (1 ciclos restantes)
+  Decode:       Procesando: addi x3, x0, 30 (1 ciclos restantes)
+  RegFile:      Procesando: addi x2, x0, 20 (1 ciclos restantes)
+  Execute:      Procesando: addi x1, x0, 10 (1 ciclos restantes)
   Store:        Libre
 
 
 [CICLO   5] [PC= 20] Estado del Pipeline:
-  Fetch:        Procesando: .text (1 ciclos restantes)
-  Decode:       Procesando: .string "Fin del programa\n" (1 ciclos restantes)
-  RegFile:      Procesando: .word 500 (1 ciclos restantes)
-  Execute:      Procesando: .word 0 (1 ciclos restantes)
-  Store:        Procesando: .data (1 ciclos restantes)
+  Fetch:        Procesando: addi x5, x0, 50 (1 ciclos restantes)
+  Decode:       Procesando: addi x4, x0, 40 (1 ciclos restantes)
+  RegFile:      Procesando: addi x3, x0, 30 (1 ciclos restantes)
+  Execute:      Procesando: addi x2, x0, 20 (1 ciclos restantes)
+  Store:        Procesando: addi x1, x0, 10 (1 ciclos restantes)
 
-[CICLO 5] [COMPLETADA] .data
+[CICLO 5] [COMPLETADA] addi x1, x0, 10
+[STORE] Registro x1 <- 10
 
 [CICLO   6] [PC= 24] Estado del Pipeline:
-  Fetch:        Procesando: .globl _start (1 ciclos restantes)
-  Decode:       Procesando: .text (1 ciclos restantes)
-  RegFile:      Procesando: .string "Fin del programa\n" (1 ciclos restantes)
-  Execute:      Procesando: .word 500 (1 ciclos restantes)
-  Store:        Procesando: .word 0 (1 ciclos restantes)
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: addi x5, x0, 50 (1 ciclos restantes)
+  RegFile:      Procesando: addi x4, x0, 40 (1 ciclos restantes)
+  Execute:      Procesando: addi x3, x0, 30 (1 ciclos restantes)
+  Store:        Procesando: addi x2, x0, 20 (1 ciclos restantes)
 
-[CICLO 6] [COMPLETADA] .word 0
+[CICLO 6] [COMPLETADA] addi x2, x0, 20
+[STORE] Registro x2 <- 20
 
 [CICLO   7] [PC= 28] Estado del Pipeline:
-  Fetch:        Procesando: addi x1, x0, 5 (1 ciclos restantes)
-  Decode:       Procesando: .globl _start (1 ciclos restantes)
-  RegFile:      Procesando: .text (1 ciclos restantes)
-  Execute:      Procesando: .string "Fin del programa\n" (1 ciclos restantes)
-  Store:        Procesando: .word 500 (1 ciclos restantes)
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: addi x5, x0, 50 (1 ciclos restantes)
+  Execute:      Procesando: addi x4, x0, 40 (1 ciclos restantes)
+  Store:        Procesando: addi x3, x0, 30 (1 ciclos restantes)
 
-[CICLO 7] [COMPLETADA] .word 500
+[CICLO 7] [COMPLETADA] addi x3, x0, 30
+[STORE] Registro x3 <- 30
 
 [CICLO   8] [PC= 32] Estado del Pipeline:
-  Fetch:        Procesando: addi x2, x0, 10 (1 ciclos restantes)
-  Decode:       Procesando: addi x1, x0, 5 (1 ciclos restantes)
-  RegFile:      Procesando: .globl _start (1 ciclos restantes)
-  Execute:      Procesando: .text (1 ciclos restantes)
-  Store:        Procesando: .string "Fin del programa\n" (1 ciclos restantes)
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: addi x5, x0, 50 (1 ciclos restantes)
+  Store:        Procesando: addi x4, x0, 40 (1 ciclos restantes)
 
-[CICLO 8] [COMPLETADA] .string "Fin del programa\n"
+[CICLO 8] [COMPLETADA] addi x4, x0, 40
+[STORE] Registro x4 <- 40
 
 [CICLO   9] [PC= 36] Estado del Pipeline:
-  Fetch:        Procesando: add x3, x1, x2 (1 ciclos restantes)
-  Decode:       Procesando: addi x2, x0, 10 (1 ciclos restantes)
-  RegFile:      Procesando: addi x1, x0, 5 (1 ciclos restantes)
-  Execute:      Procesando: .globl _start (1 ciclos restantes)
-  Store:        Procesando: .text (1 ciclos restantes)
+  Fetch:        Procesando: addi x10, x0, 0 (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: addi x5, x0, 50 (1 ciclos restantes)
 
-[CICLO 9] [COMPLETADA] .text
+[CICLO 9] [COMPLETADA] addi x5, x0, 50
+[STORE] Registro x5 <- 50
 
 [CICLO  10] [PC= 40] Estado del Pipeline:
-  Fetch:        Procesando: add x4, x3, x1 (1 ciclos restantes)
-  Decode:       Procesando: add x3, x1, x2 (1 ciclos restantes)
-  RegFile:      Procesando: addi x2, x0, 10 (1 ciclos restantes)
-  Execute:      Procesando: addi x1, x0, 5 (1 ciclos restantes)
-  Store:        Procesando: .globl _start (1 ciclos restantes)
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: addi x10, x0, 0 (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
 
-[CICLO 10] [COMPLETADA] .globl _start
+[CICLO 10] [COMPLETADA] nop
 
 [CICLO  11] [PC= 44] Estado del Pipeline:
-  Fetch:        Procesando: add x5, x3, x2 (1 ciclos restantes)
-  Decode:       Procesando: add x4, x3, x1 (1 ciclos restantes)
-  RegFile:      Procesando: add x3, x1, x2 (1 ciclos restantes)
-  Execute:      Procesando: addi x2, x0, 10 (1 ciclos restantes)
-  Store:        Procesando: addi x1, x0, 5 (1 ciclos restantes)
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: addi x10, x0, 0 (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
 
-[CICLO 11] [COMPLETADA] addi x1, x0, 5
-[STORE] Registro x1 <- 5
+[CICLO 11] [COMPLETADA] nop
 
 [CICLO  12] [PC= 48] Estado del Pipeline:
-  Fetch:        Procesando: add x6, x4, x5 (1 ciclos restantes)
-  Decode:       Procesando: add x5, x3, x2 (1 ciclos restantes)
-  RegFile:      Procesando: add x4, x3, x1 (1 ciclos restantes)
-  Execute:      Procesando: add x3, x1, x2 (1 ciclos restantes)
-  Store:        Procesando: addi x2, x0, 10 (1 ciclos restantes)
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: addi x10, x0, 0 (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
 
-[CICLO 12] [COMPLETADA] addi x2, x0, 10
-[STORE] Registro x2 <- 10
+[CICLO 12] [COMPLETADA] nop
 
 [CICLO  13] [PC= 52] Estado del Pipeline:
+  Fetch:        Procesando: sw x1, 0(x10) (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: addi x10, x0, 0 (1 ciclos restantes)
+
+[CICLO 13] [COMPLETADA] addi x10, x0, 0
+[STORE] Registro x10 <- 0
+
+[CICLO  14] [PC= 56] Estado del Pipeline:
   Fetch:        Procesando: nop (1 ciclos restantes)
-  Decode:       Procesando: add x6, x4, x5 (1 ciclos restantes)
-  RegFile:      Procesando: add x5, x3, x2 (1 ciclos restantes)
-  Execute:      Procesando: add x4, x3, x1 (1 ciclos restantes)
-  Store:        Procesando: add x3, x1, x2 (1 ciclos restantes)
+  Decode:       Procesando: sw x1, 0(x10) (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
 
-[CICLO 13] [COMPLETADA] add x3, x1, x2
-[STORE] Registro x3 <- 0
+[CICLO 14] [COMPLETADA] nop
 
-[CICLO  14] [PC= 52] Estado del Pipeline:
+[CICLO  15] [PC= 60] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: sw x1, 0(x10) (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 15] [COMPLETADA] nop
+
+[CICLO  16] [PC= 64] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: sw x1, 0(x10) (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 16] [COMPLETADA] nop
+
+[CICLO  17] [PC= 68] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: sw x1, 0(x10) (1 ciclos restantes)
+
+[CICLO 17] [COMPLETADA] sw x1, 0(x10)
+[STORE] Mem[0] <- 10
+
+[CICLO  18] [PC= 72] Estado del Pipeline:
+  Fetch:        Procesando: sw x2, 4(x10) (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 18] [COMPLETADA] nop
+
+[CICLO  19] [PC= 76] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: sw x2, 4(x10) (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 19] [COMPLETADA] nop
+
+[CICLO  20] [PC= 80] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: sw x2, 4(x10) (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 20] [COMPLETADA] nop
+
+[CICLO  21] [PC= 84] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: sw x2, 4(x10) (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 21] [COMPLETADA] nop
+
+[CICLO  22] [PC= 88] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: sw x2, 4(x10) (1 ciclos restantes)
+
+[CICLO 22] [COMPLETADA] sw x2, 4(x10)
+[STORE] Mem[4] <- 20
+
+[CICLO  23] [PC= 92] Estado del Pipeline:
+  Fetch:        Procesando: sw x3, 8(x10) (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 23] [COMPLETADA] nop
+
+[CICLO  24] [PC= 96] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: sw x3, 8(x10) (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 24] [COMPLETADA] nop
+
+[CICLO  25] [PC=100] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: sw x3, 8(x10) (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 25] [COMPLETADA] nop
+
+[CICLO  26] [PC=104] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: sw x3, 8(x10) (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 26] [COMPLETADA] nop
+
+[CICLO  27] [PC=108] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: sw x3, 8(x10) (1 ciclos restantes)
+
+[CICLO 27] [COMPLETADA] sw x3, 8(x10)
+[STORE] Mem[8] <- 30
+
+[CICLO  28] [PC=112] Estado del Pipeline:
+  Fetch:        Procesando: sw x4, 12(x10) (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 28] [COMPLETADA] nop
+
+[CICLO  29] [PC=116] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: sw x4, 12(x10) (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 29] [COMPLETADA] nop
+
+[CICLO  30] [PC=120] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: sw x4, 12(x10) (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 30] [COMPLETADA] nop
+
+[CICLO  31] [PC=124] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: sw x4, 12(x10) (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 31] [COMPLETADA] nop
+
+[CICLO  32] [PC=128] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: sw x4, 12(x10) (1 ciclos restantes)
+
+[CICLO 32] [COMPLETADA] sw x4, 12(x10)
+[STORE] Mem[12] <- 40
+
+[CICLO  33] [PC=132] Estado del Pipeline:
+  Fetch:        Procesando: sw x5, 16(x10) (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 33] [COMPLETADA] nop
+
+[CICLO  34] [PC=136] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: sw x5, 16(x10) (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 34] [COMPLETADA] nop
+
+[CICLO  35] [PC=140] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: sw x5, 16(x10) (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 35] [COMPLETADA] nop
+
+[CICLO  36] [PC=144] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: sw x5, 16(x10) (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 36] [COMPLETADA] nop
+
+[CICLO  37] [PC=148] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: sw x5, 16(x10) (1 ciclos restantes)
+
+[CICLO 37] [COMPLETADA] sw x5, 16(x10)
+[STORE] Mem[16] <- 50
+
+[CICLO  38] [PC=152] Estado del Pipeline:
+  Fetch:        Procesando: add x6, x1, x2 (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 38] [COMPLETADA] nop
+
+[CICLO  39] [PC=156] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: add x6, x1, x2 (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 39] [COMPLETADA] nop
+
+[CICLO  40] [PC=160] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: add x6, x1, x2 (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 40] [COMPLETADA] nop
+
+[CICLO  41] [PC=164] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: add x6, x1, x2 (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 41] [COMPLETADA] nop
+
+[CICLO  42] [PC=168] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: add x6, x1, x2 (1 ciclos restantes)
+
+[CICLO 42] [COMPLETADA] add x6, x1, x2
+[STORE] Registro x6 <- 30
+
+[CICLO  43] [PC=172] Estado del Pipeline:
+  Fetch:        Procesando: sw x6, 20(x10) (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 43] [COMPLETADA] nop
+
+[CICLO  44] [PC=176] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: sw x6, 20(x10) (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 44] [COMPLETADA] nop
+
+[CICLO  45] [PC=180] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: sw x6, 20(x10) (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 45] [COMPLETADA] nop
+
+[CICLO  46] [PC=184] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: sw x6, 20(x10) (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 46] [COMPLETADA] nop
+
+[CICLO  47] [PC=188] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: sw x6, 20(x10) (1 ciclos restantes)
+
+[CICLO 47] [COMPLETADA] sw x6, 20(x10)
+[STORE] Mem[20] <- 30
+
+[CICLO  48] [PC=192] Estado del Pipeline:
+  Fetch:        Procesando: add x7, x3, x4 (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 48] [COMPLETADA] nop
+
+[CICLO  49] [PC=196] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: add x7, x3, x4 (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 49] [COMPLETADA] nop
+
+[CICLO  50] [PC=200] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: add x7, x3, x4 (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 50] [COMPLETADA] nop
+
+[CICLO  51] [PC=204] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: add x7, x3, x4 (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 51] [COMPLETADA] nop
+
+[CICLO  52] [PC=208] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: add x7, x3, x4 (1 ciclos restantes)
+
+[CICLO 52] [COMPLETADA] add x7, x3, x4
+[STORE] Registro x7 <- 70
+
+[CICLO  53] [PC=212] Estado del Pipeline:
+  Fetch:        Procesando: sw x7, 24(x10) (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 53] [COMPLETADA] nop
+
+[CICLO  54] [PC=216] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: sw x7, 24(x10) (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 54] [COMPLETADA] nop
+
+[CICLO  55] [PC=220] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: sw x7, 24(x10) (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 55] [COMPLETADA] nop
+
+[CICLO  56] [PC=224] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: sw x7, 24(x10) (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 56] [COMPLETADA] nop
+
+[CICLO  57] [PC=228] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: sw x7, 24(x10) (1 ciclos restantes)
+
+[CICLO 57] [COMPLETADA] sw x7, 24(x10)
+[STORE] Mem[24] <- 70
+
+[CICLO  58] [PC=232] Estado del Pipeline:
+  Fetch:        Procesando: add x8, x5, x6 (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 58] [COMPLETADA] nop
+
+[CICLO  59] [PC=236] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: add x8, x5, x6 (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 59] [COMPLETADA] nop
+
+[CICLO  60] [PC=240] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: add x8, x5, x6 (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 60] [COMPLETADA] nop
+
+[CICLO  61] [PC=244] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: add x8, x5, x6 (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 61] [COMPLETADA] nop
+
+[CICLO  62] [PC=248] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: add x8, x5, x6 (1 ciclos restantes)
+
+[CICLO 62] [COMPLETADA] add x8, x5, x6
+[STORE] Registro x8 <- 80
+
+[CICLO  63] [PC=252] Estado del Pipeline:
+  Fetch:        Procesando: sw x8, 28(x10) (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 63] [COMPLETADA] nop
+
+[CICLO  64] [PC=256] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: sw x8, 28(x10) (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 64] [COMPLETADA] nop
+
+[CICLO  65] [PC=260] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: sw x8, 28(x10) (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 65] [COMPLETADA] nop
+
+[CICLO  66] [PC=264] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: sw x8, 28(x10) (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 66] [COMPLETADA] nop
+
+[CICLO  67] [PC=268] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: sw x8, 28(x10) (1 ciclos restantes)
+
+[CICLO 67] [COMPLETADA] sw x8, 28(x10)
+[STORE] Mem[28] <- 80
+
+[CICLO  68] [PC=272] Estado del Pipeline:
+  Fetch:        Procesando: addi x9, x0, 99 (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 68] [COMPLETADA] nop
+
+[CICLO  69] [PC=276] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: addi x9, x0, 99 (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 69] [COMPLETADA] nop
+
+[CICLO  70] [PC=280] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: addi x9, x0, 99 (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 70] [COMPLETADA] nop
+
+[CICLO  71] [PC=284] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: addi x9, x0, 99 (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 71] [COMPLETADA] nop
+
+[CICLO  72] [PC=288] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: addi x9, x0, 99 (1 ciclos restantes)
+
+[CICLO 72] [COMPLETADA] addi x9, x0, 99
+[STORE] Registro x9 <- 99
+
+[CICLO  73] [PC=292] Estado del Pipeline:
+  Fetch:        Procesando: sw x9, 32(x10) (1 ciclos restantes)
+  Decode:       Procesando: nop (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 73] [COMPLETADA] nop
+
+[CICLO  74] [PC=296] Estado del Pipeline:
+  Fetch:        Procesando: nop (1 ciclos restantes)
+  Decode:       Procesando: sw x9, 32(x10) (1 ciclos restantes)
+  RegFile:      Procesando: nop (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
+
+[CICLO 74] [COMPLETADA] nop
+
+[CICLO  75] [PC=296] Estado del Pipeline:
   Fetch:        Libre
   Decode:       Procesando: nop (1 ciclos restantes)
-  RegFile:      Procesando: add x6, x4, x5 (1 ciclos restantes)
-  Execute:      Procesando: add x5, x3, x2 (1 ciclos restantes)
-  Store:        Procesando: add x4, x3, x1 (1 ciclos restantes)
+  RegFile:      Procesando: sw x9, 32(x10) (1 ciclos restantes)
+  Execute:      Procesando: nop (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
 
-[CICLO 14] [COMPLETADA] add x4, x3, x1
-[STORE] Registro x4 <- 5
+[CICLO 75] [COMPLETADA] nop
 
-[CICLO  15] [PC= 52] Estado del Pipeline:
+[CICLO  76] [PC=296] Estado del Pipeline:
   Fetch:        Libre
   Decode:       Libre
   RegFile:      Procesando: nop (1 ciclos restantes)
-  Execute:      Procesando: add x6, x4, x5 (1 ciclos restantes)
-  Store:        Procesando: add x5, x3, x2 (1 ciclos restantes)
+  Execute:      Procesando: sw x9, 32(x10) (1 ciclos restantes)
+  Store:        Procesando: nop (1 ciclos restantes)
 
-[CICLO 15] [COMPLETADA] add x5, x3, x2
-[STORE] Registro x5 <- 10
+[CICLO 76] [COMPLETADA] nop
 
-[CICLO  16] [PC= 52] Estado del Pipeline:
+[CICLO  77] [PC=296] Estado del Pipeline:
   Fetch:        Libre
   Decode:       Libre
   RegFile:      Libre
   Execute:      Procesando: nop (1 ciclos restantes)
-  Store:        Procesando: add x6, x4, x5 (1 ciclos restantes)
+  Store:        Procesando: sw x9, 32(x10) (1 ciclos restantes)
 
-[CICLO 16] [COMPLETADA] add x6, x4, x5
-[STORE] Registro x6 <- 0
+[CICLO 77] [COMPLETADA] sw x9, 32(x10)
+[STORE] Mem[32] <- 99
 
-[CICLO  17] [PC= 52] Estado del Pipeline:
+[CICLO  78] [PC=296] Estado del Pipeline:
   Fetch:        Libre
   Decode:       Libre
   RegFile:      Libre
   Execute:      Libre
   Store:        Procesando: nop (1 ciclos restantes)
 
-[CICLO 17] [COMPLETADA] nop
+[CICLO 78] [COMPLETADA] nop
 
 ================================================================================
-[SIMULACIÓN COMPLETADA] Total de ciclos: 18
+[SIMULACIÓN COMPLETADA] Total de ciclos: 79
 ================================================================================
 
 Estado de memoria escrito en memoria_salida.txt

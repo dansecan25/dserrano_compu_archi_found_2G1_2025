@@ -2,7 +2,7 @@ from Simulador.cpuPipelinePrediccionSaltosHazardControl import *
 from Simulador.cpuPipelineSinHazards import *
 from Simulador.cpuPipelineHazardControl import *
 from Simulador.cpuPipelineConPredicciondeSaltos import *
-codigo_pruebas:int = 4
+codigo_pruebas:int = 2
 riscv_code=[]
 if(codigo_pruebas==0):
     riscv_code = [
