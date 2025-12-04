@@ -1,0 +1,65 @@
+=== LOG DE EJECUCIÓN DEL CPU PIPELINE ===
+Latencias: Fetch=1, Decode=1, RegisterFile=1, Execute=2(var), Store=1
+================================================================================
+
+1 instrucciones cargadas desde lista `riscv_code`
+  [000] addi x1, x0, 10
+
+=== INICIANDO SIMULACIÓN DEL PIPELINE ===
+
+
+[CICLO   0] [PC=  0] Estado del Pipeline:
+  Fetch:        Libre
+  Decode:       Libre
+  RegFile:      Libre
+  Execute:      Libre
+  Store:        Libre
+
+
+[CICLO   1] [PC=  4] Estado del Pipeline:
+  Fetch:        Procesando: addi x1, x0, 10 (1 ciclos restantes)
+  Decode:       Libre
+  RegFile:      Libre
+  Execute:      Libre
+  Store:        Libre
+
+
+[CICLO   2] [PC=  4] Estado del Pipeline:
+  Fetch:        Libre
+  Decode:       Procesando: addi x1, x0, 10 (1 ciclos restantes)
+  RegFile:      Libre
+  Execute:      Libre
+  Store:        Libre
+
+
+[CICLO   3] [PC=  4] Estado del Pipeline:
+  Fetch:        Libre
+  Decode:       Libre
+  RegFile:      Procesando: addi x1, x0, 10 (1 ciclos restantes)
+  Execute:      Libre
+  Store:        Libre
+
+
+[CICLO   4] [PC=  4] Estado del Pipeline:
+  Fetch:        Libre
+  Decode:       Libre
+  RegFile:      Libre
+  Execute:      Procesando: addi x1, x0, 10 (1 ciclos restantes)
+  Store:        Libre
+
+
+[CICLO   5] [PC=  4] Estado del Pipeline:
+  Fetch:        Libre
+  Decode:       Libre
+  RegFile:      Libre
+  Execute:      Libre
+  Store:        Procesando: addi x1, x0, 10 (1 ciclos restantes)
+
+[CICLO 5] [COMPLETADA] addi x1, x0, 10
+[STORE] Registro x1 <- 10
+
+================================================================================
+[SIMULACIÓN COMPLETADA] Total de ciclos: 6
+================================================================================
+
+Estado de memoria escrito en memoria_salida.txt

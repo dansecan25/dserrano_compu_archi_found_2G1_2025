@@ -474,3 +474,92 @@ def create_path(start: Tuple[int, int], end: Tuple[int, int],
 def create_multi_segment_path(points: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
     """Create a path through multiple waypoints"""
     return points
+
+
+class HazardUnit(ProcessorBlock):
+    """Hazard Detection and Forwarding Unit"""
+
+    def __init__(self, canvas, x: int, y: int, width=200, height=100):
+        super().__init__(canvas, x, y, width, height, "Hazard Detection\n& Forwarding Unit",
+                        '#3A3A3A', '#6A4A4A')
+        self.stall_active = False
+        self.forwarding_active = False
+
+    def _draw(self):
+        """Draw hazard unit with status indicators"""
+        super()._draw()
+
+        # Add status indicators
+        indicator_y = self.y + self.height - 20
+
+        # Stall indicator
+        self.stall_indicator = self.canvas.create_oval(
+            self.x + 30, indicator_y,
+            self.x + 45, indicator_y + 15,
+            fill='#555', outline='#777',
+            tags=('hazard_indicator', 'stall')
+        )
+        self.canvas.create_text(
+            self.x + 60, indicator_y + 7,
+            text='STALL',
+            fill='#888',
+            font=('Arial', 8),
+            anchor='w',
+            tags='hazard_label'
+        )
+
+        # Forwarding indicator
+        self.forward_indicator = self.canvas.create_oval(
+            self.x + 110, indicator_y,
+            self.x + 125, indicator_y + 15,
+            fill='#555', outline='#777',
+            tags=('hazard_indicator', 'forward')
+        )
+        self.canvas.create_text(
+            self.x + 140, indicator_y + 7,
+            text='FWD',
+            fill='#888',
+            font=('Arial', 8),
+            anchor='w',
+            tags='hazard_label'
+        )
+
+    def set_stall(self, active: bool):
+        """Activate or deactivate stall indicator"""
+        self.stall_active = active
+        color = '#FF6A6A' if active else '#555'  # Red when stalling
+        self.canvas.itemconfig(self.stall_indicator, fill=color,
+                              outline='#FF8888' if active else '#777')
+
+    def set_forwarding(self, active: bool):
+        """Activate or deactivate forwarding indicator"""
+        self.forwarding_active = active
+        color = '#6ADA6A' if active else '#555'  # Green when forwarding
+        self.canvas.itemconfig(self.forward_indicator, fill=color,
+                              outline='#8AFA8A' if active else '#777')
+
+    def set_active(self, active: bool):
+        """Override to handle both main block and indicators"""
+        super().set_active(active)
+        # When hazard unit is active, show it's working
+        if active:
+            self.canvas.itemconfig(self.rect_id, fill='#4A4A6A', outline='#8A8ADA')
+
+
+class ForwardingPath(Wire):
+    """Special wire type for forwarding paths (dashed, different color)"""
+
+    def __init__(self, canvas, points: List[Tuple[int, int]], name=""):
+        super().__init__(canvas, points, width=2,
+                        color='#6A6A4A', active_color='#DADA6A', name=name)
+        # Make it dashed
+        for line_id in self.line_ids:
+            self.canvas.itemconfig(line_id, dash=(5, 3))
+
+    def set_active(self, active: bool):
+        """Override to use yellow/orange color for forwarding"""
+        self.is_active = active
+        color = '#DADA6A' if active else self.color  # Yellow when active
+        for line_id in self.line_ids:
+            self.canvas.itemconfig(line_id, fill=color,
+                                  width=self.width + 1 if active else self.width)
