@@ -35,102 +35,89 @@ class CPUPipelineHazardControl:
         self.log_file.write(mensaje + "\n")
     
     def controlar_hazards(self, codigo: list[str]) -> list[str]:
-        nuevo = []
-        
-        # Función auxiliar para extraer rd, rs1, rs2
-        def extraer_registros(inst):
-            # Eliminar comentarios, espacios dobles
+        """
+        Nuevo detector:
+        - detecta RAW con distancia 1 y 2
+        - para load-use: inserta 1 NOP antes del consumidor
+        - para RAW normal: inserta 1 NOP antes del consumidor (ajustable)
+        """
+        def parse(inst):
             inst = inst.split("#")[0].strip()
             if not inst:
-                return None, None, None
-            
-            partes = inst.replace(",", " ").split()
-            op = partes[0]
-
+                return None, None, None, None
+            parts = inst.replace(",", " ").replace("(", " ").replace(")", " ").split()
+            op = parts[0]
             rd = rs1 = rs2 = None
+            if op in ["add","sub","and","or","xor","sll","srl","sra","mul","div","rem"]:
+                if len(parts) >= 4:
+                    rd, rs1, rs2 = parts[1], parts[2], parts[3]
+            elif op in ["addi","andi","ori","xori","slti","sltiu","li"]:
+                if len(parts) >= 3:
+                    rd, rs1 = parts[1], parts[2]
+            elif op == "lw":
+                if len(parts) >= 3:
+                    rd = parts[1]; rs1 = parts[3] if len(parts) > 3 else None
+            elif op == "sw":
+                if len(parts) >= 3:
+                    rs2 = parts[1]; rs1 = parts[3] if len(parts) > 3 else None
+            elif op in ["beq","bne","blt","bge","bltu","bgeu"]:
+                if len(parts) >= 3:
+                    rs1, rs2 = parts[1], parts[2]
+            elif op == "jal":
+                if len(parts) >= 2:
+                    rd = parts[1]
+            elif op == "jalr":
+                if len(parts) >= 3:
+                    rd, rs1 = parts[1], parts[2]
+            return rd, rs1, rs2, op
 
-            # Formatos más comunes
-            if op in ["add", "sub", "and", "or", "xor", "sll", "srl", "sra",
-                    "mul", "div", "rem"]:
-                # R-type: rd rs1 rs2
-                if len(partes) >= 4:
-                    rd, rs1, rs2 = partes[1], partes[2], partes[3]
-
-            elif op in ["addi", "andi", "ori", "xori", "slti", "sltiu"]:
-                # I-type aritmetico: rd rs1 imm
-                if len(partes) >= 3:
-                    rd, rs1 = partes[1], partes[2]
-
-            elif op in ["lw"]:
-                # I-type load: rd offset(rs1)
-                if len(partes) >= 3:
-                    rd = partes[1]
-                    # offset(rs1)
-                    base = partes[2]
-                    if "(" in base:
-                        rs1 = base.split("(")[1][:-1]
-
-            elif op in ["sw"]:
-                # S-type store: rs2 offset(rs1)
-                if len(partes) >= 3:
-                    rs2 = partes[1]
-                    base = partes[2]
-                    if "(" in base:
-                        rs1 = base.split("(")[1][:-1]
-
-            elif op in ["jal"]:
-                # jal rd, label  → escribe rd, no usa rs1/rs2
-                if len(partes) >= 2:
-                    rd = partes[1]
-
-            elif op in ["jalr"]:
-                # jalr rd, rs1, imm
-                if len(partes) >= 4:
-                    rd, rs1 = partes[1], partes[2]
-
-            elif op in ["beq", "bne", "blt", "bge", "bltu", "bgeu"]:
-                # Branch: usa rs1, rs2
-                if len(partes) >= 4:
-                    rs1, rs2 = partes[1], partes[2]
-
-            return rd, rs1, rs2
-
-        # Revisión de hazards RAW
-        for i in range(len(codigo)):
+        out = []
+        i = 0
+        while i < len(codigo):
             inst = codigo[i]
-            nuevo.append(inst)
+            rd_i, rs1_i, rs2_i, op_i = parse(inst)
+            # lookahead j = i+1 and i+2
+            # We'll decide whether to insert NOPs BEFORE the consumer.
+            inserted = False
 
-            # No se puede comparar con una instrucción inexistente
-            if i == len(codigo) - 1:
-                continue
+            for j in (1, 2):  # check next 1 and 2 instructions
+                if i + j >= len(codigo):
+                    break
+                rd_j, rs1_j, rs2_j, op_j = parse(codigo[i + j])
+                if rd_i and rd_i != "x0":
+                    # consumer uses rd_i?
+                    if rs1_j == rd_i or rs2_j == rd_i:
+                        # if producer is load, ensure one NOP before consumer
+                        if op_i == "lw":
+                            # insert one nop BEFORE consumer (i+j)
+                            # append current inst, then inject nops to push consumer
+                            out.append(inst)
+                            # add (j-1) original instructions between producer and consumer
+                            for k in range(1, j):
+                                out.append(codigo[i+k])
+                            out.append("nop")
+                            # now advance i to skip what we already copied (producer + intermediate)
+                            i += j
+                            inserted = True
+                            break
+                        else:
+                            # general RAW: insert one nop before consumer
+                            out.append(inst)
+                            for k in range(1, j):
+                                out.append(codigo[i+k])
+                            out.append("nop")
+                            i += j
+                            inserted = True
+                            break
+            if not inserted:
+                out.append(inst)
+                i += 1
 
-            rd, _, _ = extraer_registros(inst)
-            if rd is None or rd == "x0":
-                continue
+        # optional debug print
+        if len(out) > len(codigo):
+            print("Se agregaron nops para manejar hazards. Nuevo tamaño:", len(out))
+        return out
 
-            # Revisar siguiente instrucción
-            inst_sig = codigo[i + 1]
-            _, rs1_sig, rs2_sig = extraer_registros(inst_sig)
-
-            hazard = False
-
-            # Si el siguiente usa ese registro → HAZARD RAW
-            if rs1_sig == rd or rs2_sig == rd:
-                hazard = True
-
-            # load-use hazard (lw -> next)
-            if inst.strip().startswith("lw"):
-                if rs1_sig == rd or rs2_sig == rd:
-                    hazard = True
-
-            # Si hay hazard, insertar NOP
-            if hazard:
-                nuevo.append("nop")
-        if len(nuevo)>len(codigo):
-            print(f"Se agregaron nops para manejar hazards, lista nueva:\n{nuevo}")
-        else:
-            print("No hubo inserción de nops")
-        return nuevo
 
 
 

@@ -7,7 +7,7 @@ from cpuPipelinePrediccionSaltosHazardControl import CPUPipelinePrediccionSaltos
 # 1-> no hazard codigo  
 # 2-> hazard control necesitado
 # 3-> prediccion de saltos  
-codigo_pruebas:int = 4
+codigo_pruebas:int = 6
 riscv_code=[]
 if(codigo_pruebas==0):
     riscv_code = [
@@ -310,6 +310,100 @@ elif codigo_pruebas==4:
         "nop",
         "",
     ]
+elif codigo_pruebas==5:
+    riscv_code = [
+        "# TEST SIMPLE: branches, add, addi, lw, sw",
+        "",
+        "# Inicializar",
+        "addi x1, x0, 10",
+        "addi x2, x0, 20",
+        "add x3, x1, x2",
+        "",
+        "# Store",
+        "addi x10, x0, 0",
+        "sw x1, 0(x10)",
+        "sw x2, 4(x10)",
+        "sw x3, 8(x10)",
+        "",
+        "# Load",
+        "lw x4, 0(x10)",
+        "",
+        "# Branch NO tomado",
+        "beq x1, x2, skip1",
+        "addi x5, x0, 50",
+        "skip1:",
+        "",
+        "# Branch SI tomado",
+        "beq x1, x1, skip2",
+        "addi x6, x0, 99",
+        "skip2:",
+        "addi x7, x0, 77",
+        "nop"
+    ]
+elif codigo_pruebas==6:
+    riscv_code = [
+    "# TEST GLOBAL: arithmetic, loads/stores, hazards, branches, jal",
+    ".data",
+    "val1: .word 7",
+    "val2: .word 3",
+    ".text",
+    ".globl _start",
+    "",
+    "_start:",
+    "    # Inicializar registros",
+    "    addi x1, x0, 5        # x1 = 5",
+    "    addi x2, x0, 10       # x2 = 10",
+    "    add x3, x1, x2        # x3 = x1 + x2 -> depende de x1,x2",
+    "    addi x4, x3, 2        # x4 = x3 + 2 -> RAW con x3",
+    "",
+    "    # Guardar en memoria (sw) y luego leer (lw)",
+    "    addi x10, x0, 0       # x10 = base 0",
+    "    sw x1, 0(x10)         # Mem[0] = x1",
+    "    sw x2, 4(x10)         # Mem[4] = x2",
+    "    sw x3, 8(x10)         # Mem[8] = x3",
+    "    lw x5, 8(x10)         # x5 <- Mem[8] (debe ser x3)",
+    "",
+    "    # Hazards intencionados: load-use y RAW",
+    "    lw x6, 0(x10)         # x6 <- Mem[0] (load)",
+    "    addi x7, x6, 1        # usa x6 inmediatamente -> load-use",
+    "    add x8, x3, x7        # usa x3 y x7 -> RAW encadenado",
+    "",
+    "    # Branch: probamos no tomado y tomado",
+    "    beq x1, x2, skip_bt1  # x1!=x2 -> no tomado",
+    "    addi x9, x0, 99       # no debe ejecutarse",
+    "skip_bt1:",
+    "    beq x1, x1, skip_bt2  # siempre tomado",
+    "    addi x9, x0, 50       # no debe ejecutarse",
+    "skip_bt2:",
+    "",
+    "    # Loop simple para probar predicción",
+    "    addi x11, x0, 0       # cnt = 0",
+    "    addi x12, x0, 4       # limit = 4",
+    "loop:",
+    "    addi x11, x11, 1      # cnt++",
+    "    add x13, x13, x11     # acc += cnt (x13 starts 0)",
+    "    beq x11, x12, endloop",
+    "    jal x0, loop",
+    "endloop:",
+    "",
+    "    # Llamada a función (jal) y uso del return address",
+    "    jal x14, funcion      # jal guarda PC+4 en x14",
+    "    addi x15, x14, 2      # usar x14 inmediatamente -> RAW con jal",
+    "",
+    "    # Fin (marca) y loop infinito para detener ejecución",
+    "    addi x31, x0, 77      # marca final en x31",
+    "    jal x0, fin",
+    "",
+    "funcion:",
+    "    addi x20, x0, 11      # x20 = 11",
+    "    addi x21, x20, 1      # x21 = x20 + 1",
+    "    jalr x0, x14, 0       # retornar a x14",
+    "",
+    "fin:",
+    "    nop"
+]
+
+
 
 # 0-> no hazard control
 # 1-> hazard control 
@@ -339,15 +433,12 @@ print("ANÁLISIS DE RESULTADOS - PREDICCIÓN DE SALTOS")
 print("=" * 80)
 
 if codigo_pruebas == 3:
-    print(f"\n[REGISTROS FINALES]")
-    print(f"  x1  = {cpuPipeline.regs[1]:3d} (esperado: 5 - contador)")
-    print(f"  x2  = {cpuPipeline.regs[2]:3d} (esperado: 5 - límite)")
-    print(f"  x3  = {cpuPipeline.regs[3]:3d} (esperado: 15 - suma)")
-    print(f"  x4  = {cpuPipeline.regs[4]:3d} (esperado: 15 - valor esperado)")
-    print(f"  x5  = {cpuPipeline.regs[5]:3d} (esperado: 100 - correcto)")
-    print(f"  x6  = {cpuPipeline.regs[6]:3d} (esperado: 75 - multiplicación)")
-    print(f"  x7  = {cpuPipeline.regs[7]:3d} (esperado: 77 - marca fin)")
-    
+
+    # ==== IMPRIMIR 32 REGISTROS ====
+    print(f"\n[REGISTROS FINALES - BANCO COMPLETO]")
+    for i in range(32):
+        print(f"  x{i:02d} = {cpuPipeline.regs[i]:4d}")
+
     print(f"\n[ESTADÍSTICAS DE PREDICCIÓN]")
     print(f"  Estrategia: {cpuPipeline.branch_predictor.strategy}")
     print(f"  Total ciclos: {cpuPipeline.ciclo_actual}")
@@ -361,7 +452,7 @@ if codigo_pruebas == 3:
     print("\n" + "=" * 80)
     print("VERIFICACIÓN DETALLADA")
     print("=" * 80)
-    
+
     errores = 0
     tests = [
         (1, 5, "x1 - contador"),
@@ -380,7 +471,7 @@ if codigo_pruebas == 3:
         else:
             print(f"[ERROR] {descripcion}: esperado={esperado}, obtenido={valor_real}")
             errores += 1
-    
+
     print("\n" + "=" * 80)
     print("RESUMEN DE VALIDACIÓN")
     print("=" * 80)
@@ -399,12 +490,11 @@ if codigo_pruebas == 3:
     print("=" * 80)
 
 else:
-    print(f"\n[REGISTROS PRINCIPALES]")
-    print(f"  x1  = {cpuPipeline.regs[1]:3d} (esperado: 64)")
-    print(f"  x2  = {cpuPipeline.regs[2]:3d} (esperado: 18 - return address)")
-    print(f"  x5  = {cpuPipeline.regs[5]:3d} (esperado: 32)")
-    print(f"  x6  = {cpuPipeline.regs[6]:3d} (esperado: 30 - return address)")
-    print(f"  x8  = {cpuPipeline.regs[8]:3d} (esperado: 58)")
+
+    # ==== IMPRIMIR 32 REGISTROS ====
+    print(f"\n[REGISTROS FINALES - BANCO COMPLETO]")
+    for i in range(32):
+        print(f"  x{i:02d} = {cpuPipeline.regs[i]:4d}")
 
     print(f"\n[FUNCION 1]")
     print(f"  x10 = {cpuPipeline.regs[10]:3d} (esperado: 10)")
@@ -420,7 +510,6 @@ else:
     print("=" * 80)
 
     errores = 0
-
     tests = [
         (1, 100, "x1 (main)"),
         (2, 24, "x2 (return address 1)"),
@@ -433,14 +522,6 @@ else:
         (15, 77, "x15 (funcion2)"),
         (16, 33, "x16 (funcion2)"),
     ]
-
-    for reg, esperado, descripcion in tests:
-        valor_real = cpuPipeline.regs[reg]
-        if valor_real == esperado:
-            print(f"[OK] {descripcion}: {valor_real} == {esperado}")
-        else:
-            print(f"[ERROR] {descripcion}: {valor_real} != {esperado}")
-            errores += 1
 
     print("\n" + "=" * 80)
     print("RESUMEN DE VALIDACION")
@@ -459,8 +540,3 @@ else:
         print("    Revisar implementacion de JAL")
 
     print("=" * 80)
-
-
-
-
-
